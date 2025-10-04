@@ -1,0 +1,137 @@
+{
+ "actions": [],
+ "autoname": "autoincrement",
+ "creation": "2025-10-04 14:44:48.927861",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "date",
+  "staff_name",
+  "column_break_skhn",
+  "customer",
+  "status",
+  "booking_services_section",
+  "table_veds",
+  "section_break_gieq",
+  "table_xtnh",
+  "section_break_ijc4",
+  "amended_from"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_break_ijc4",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Booking",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "date",
+   "fieldtype": "Datetime",
+   "in_filter": 1,
+   "in_list_view": 1,
+   "in_preview": 1,
+   "in_standard_filter": 1,
+   "label": "Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_skhn",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "in_filter": 1,
+   "in_global_search": 1,
+   "in_list_view": 1,
+   "in_preview": 1,
+   "in_standard_filter": 1,
+   "label": "Customer",
+   "options": "Customer",
+   "reqd": 1
+  },
+  {
+   "fieldname": "staff_name",
+   "fieldtype": "Link",
+   "in_filter": 1,
+   "in_global_search": 1,
+   "in_list_view": 1,
+   "in_preview": 1,
+   "in_standard_filter": 1,
+   "label": "Staff Name",
+   "options": "Sales Person",
+   "reqd": 1
+  },
+  {
+   "default": "Pending",
+   "description": "Booking Status",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_filter": 1,
+   "in_global_search": 1,
+   "in_list_view": 1,
+   "in_preview": 1,
+   "in_standard_filter": 1,
+   "label": "Status",
+   "options": "Pending\nCompleted\nCheck in\nCheck out\nCancel",
+   "reqd": 1
+  },
+  {
+   "fieldname": "booking_services_section",
+   "fieldtype": "Section Break",
+   "label": "Booking Services "
+  },
+  {
+   "fieldname": "table_veds",
+   "fieldtype": "Table",
+   "options": "Sales Invoice Item"
+  },
+  {
+   "fieldname": "section_break_gieq",
+   "fieldtype": "Section Break",
+   "label": "Payment Method"
+  },
+  {
+   "fieldname": "table_xtnh",
+   "fieldtype": "Table",
+   "options": "POS Payment Method"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2025-10-04 15:33:53.986724",
+ "modified_by": "Administrator",
+ "module": "Salon",
+ "name": "Booking",
+ "naming_rule": "Autoincrement",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
