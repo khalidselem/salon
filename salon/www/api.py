@@ -39,7 +39,7 @@ def get_branches(filters=None):
         branches = frappe.db.get_list(
             "Branches",
             filters=filters,
-            fields=["name", "name1", "image", "branch_for", "assign"]
+            fields=["*"]
         )
 
         # تجهيز الصور لتكون روابط كاملة يمكن فتحها من الموبايل
