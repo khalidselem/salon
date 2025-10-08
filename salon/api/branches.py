@@ -28,10 +28,13 @@ def branch_list(per_page=100, page=1):
         page = int(page)
         start = (page - 1) * per_page
 
+        # Define filters properly
+        filters = {"disabled": 0}
+
         # Fetch branches that are not disabled
         branches = frappe.get_all(
             "Branches",
-            filters={"disabled": 0},
+            filters=filters,
             fields=[
                 "name as id",
                 "name1 as name",
