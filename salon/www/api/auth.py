@@ -20,14 +20,3 @@ def flatten(lis):
                 yield x
         else:        
             yield item
-
-@frappe.whitelist(allow_guest=True)
-def get_user(user):
-    doc = frappe.get_doc("User", user)
-    return {"user": doc, "type": "user"}
-
-
-
-
-
-
