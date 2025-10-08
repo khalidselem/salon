@@ -22,18 +22,16 @@ def flatten(lis):
             yield item
 
 @frappe.whitelist(allow_guest=True)
-def branch_list(per_page=100, page=1):
+def branch_list(per_page=10, page=1):
     try:
         per_page = int(per_page)
         page = int(page)
         start = (page - 1) * per_page
 
-        # Define filters properly
         filters = {"disabled": 0}
 
-        # Fetch branches that are not disabled
         branches = frappe.get_all(
-            "Branches",
+            "Branch",
             filters=filters,
             fields=[
                 "name as id",
@@ -46,7 +44,6 @@ def branch_list(per_page=100, page=1):
             limit_page_length=per_page
         )
 
-        # Build full data list for Flutter
         data = []
         for b in branches:
             branch_data = {
@@ -55,7 +52,7 @@ def branch_list(per_page=100, page=1):
                 "branch_for": b.branch_for or "",
                 "contact_number": b.contact_number or "",
                 "branch_image": frappe.utils.get_url(b.branch_image) if b.branch_image else "",
-                "rating_star": 5,
+                "rating_star": 0,
                 "total_review": 0,
                 "address_line_1": "",
                 "latitude": 0,
@@ -68,22 +65,11 @@ def branch_list(per_page=100, page=1):
             }
             data.append(branch_data)
 
-        if not data:
-            return {
-                "status": True,
-                "message": "No branches found",
-                "data": []
-            }
-
-        return {
-            "status": True,
-            "message": "branch list",
-            "data": data
-        }
+        frappe.response["status"] = True
+        frappe.response["message"] = "branch list"
+        frappe.response["data"] = data
 
     except Exception as e:
         frappe.log_error(message=frappe.get_traceback(), title="Branch List Error")
-        return {
-            "status": False,
-            "message": f"Server Error: {str(e)}"
-        }
+        frappe.response["status"] = False
+        frappe.response["message"] = f"Server Error: {str(e)}"
