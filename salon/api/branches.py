@@ -68,13 +68,6 @@ def branch_list(per_page=100, page=1):
             }
             data.append(branch_data)
 
-        if not data:
-            return {
-                "status": True,
-                "message": "No branches found",
-                "data": []
-            }
-
         # ✅ This part is key — no return, just assign
         frappe.response["status"] = True
         frappe.response["message"] = "branch list"
