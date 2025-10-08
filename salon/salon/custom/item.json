@@ -1,0 +1,50 @@
+{
+  "doctype": "Item",
+  "custom_fields": [
+    {
+      "dt": "Item",
+      "fieldname": "custom_salon",
+      "fieldtype": "Tab Break",
+      "label": "Salon",
+      "insert_after": "total_projected_qty",
+      "module": "Salon"
+    },
+    {
+      "dt": "Item",
+      "fieldname": "custom_staffs",
+      "fieldtype": "Table MultiSelect",
+      "label": "Staffs",
+      "insert_after": "custom_salon",
+      "options": "Assignment Rule User",
+      "module": "Salon"
+    },
+    {
+      "dt": "Item",
+      "fieldname": "custom_branches",
+      "fieldtype": "Table MultiSelect",
+      "label": "Branches",
+      "insert_after": "custom_staffs",
+      "options": "Branches table",
+      "module": "Salon"
+    },
+    {
+      "dt": "Item",
+      "fieldname": "custom_service_price",
+      "fieldtype": "Currency",
+      "label": "Service Price",
+      "insert_after": "custom_branches",
+      "module": "Salon"
+    },
+    {
+      "dt": "Item",
+      "fieldname": "custom_duration_booking",
+      "fieldtype": "Data",
+      "label": "Duration Booking",
+      "insert_after": "custom_service_price",
+      "module": "Salon",
+      "translatable": 1
+    }
+  ],
+  "property_setters": [],
+  "sync_on_migrate": 1
+}
