@@ -15,6 +15,7 @@
   "contact_number",
   "section_break_hkrm",
   "assign",
+  "slot_time",
   "column_break_tdmz"
  ],
  "fields": [
@@ -79,14 +80,19 @@
    "fieldname": "branch_info_section",
    "fieldtype": "Section Break",
    "label": "Branch Info"
+  },
+  {
+   "fieldname": "slot_time",
+   "fieldtype": "Table MultiSelect",
+   "label": "Slot Time",
+   "options": "Branches Slot Table"
   }
  ],
- "grid_page_length": 50,
  "image_field": "image",
  "index_web_pages_for_search": 1,
  "links": [],
  "make_attachments_public": 1,
- "modified": "2025-10-08 01:45:36.430845",
+ "modified": "2025-10-08 12:51:43.214837",
  "modified_by": "Administrator",
  "module": "Salon",
  "name": "Branches",
@@ -127,7 +133,6 @@
    "write": 1
   }
  ],
- "row_format": "Dynamic",
  "show_name_in_global_search": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
