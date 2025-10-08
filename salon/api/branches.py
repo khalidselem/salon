@@ -75,15 +75,13 @@ def branch_list(per_page=100, page=1):
                 "data": []
             }
 
-        return {
-            "status": True,
-            "message": "branch list",
-            "data": data
-        }
+        # ✅ This part is key — no return, just assign
+        frappe.response["status"] = True
+        frappe.response["message"] = "branch list"
+        frappe.response["data"] = data
 
     except Exception as e:
         frappe.log_error(message=frappe.get_traceback(), title="Branch List Error")
-        return {
-            "status": False,
-            "message": f"Server Error: {str(e)}"
-        }
+        frappe.response["status"] = False
+        frappe.response["message"] = f"Server Error: {str(e)}"
+        frappe.response["data"] = []
