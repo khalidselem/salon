@@ -128,7 +128,7 @@ def register(**kwargs):
         email = data.get("email")
         password = data.get("password")
         gender = data.get("gender", "").lower()
-        user_type = data.get("userType", "email")
+        user_type = data.get("user_type", "email")
 
         # Basic validation
         if not first_name or not email or not password:
