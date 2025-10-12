@@ -79,6 +79,7 @@ def social_login(**kwargs):
             "full_name": full_name,
             "enabled": 1,
             "bio": login_type,
+            "user_type": "Website User",
             "user_image": profile_image or "",
             "send_welcome_email": 0
         })
@@ -154,6 +155,7 @@ def register(**kwargs):
             "first_name": first_name,
             "last_name": last_name,
             "full_name": full_name,
+            "user_type": "Website User",
             "enabled": 1,
             "gender": gender,
             "bio": user_type,
