@@ -9,6 +9,7 @@ from frappe import _
 from frappe.utils import get_files_path
 from frappe.utils.file_manager import save_file
 from frappe.utils import nowdate, nowtime, get_first_day, getdate
+from frappe.auth import LoginManager
 
 def log_error(title, error):
     frappe.log_error(frappe.get_traceback(), title)
