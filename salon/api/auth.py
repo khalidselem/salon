@@ -23,9 +23,7 @@ def flatten(lis):
 
 @frappe.whitelist(allow_guest=True)
 def social_login(**kwargs):
-    """Handle social login (Google / Apple) from Flutter app."""
     try:
-        # Parse incoming JSON data
         if frappe.request.method == "POST":
             data = json.loads(frappe.request.data)
         else:
@@ -45,17 +43,16 @@ def social_login(**kwargs):
             })
             return
 
-        # Try to find existing user
+
         user_name = frappe.db.get_value("User", {"email": email}, "name")
 
         if user_name:
             user = frappe.get_doc("User", user_name)
 
-            # If bio (login_type) not set, set it now
+
             if not user.bio:
                 user.bio = login_type
 
-            # Update user_image if a new one is provided
             if profile_image and user.user_image != profile_image:
                 user.user_image = profile_image
 
@@ -68,7 +65,7 @@ def social_login(**kwargs):
             })
             return
 
-        # If user doesn't exist, create one
+
         full_name = f"{first_name or ''} {last_name or ''}".strip()
 
         user = frappe.get_doc({
@@ -116,9 +113,7 @@ def _user_to_dict(user):
 
 @frappe.whitelist(allow_guest=True)
 def register(**kwargs):
-    """Register new user (no token needed, Flutter friendly)"""
     try:
-        # Parse incoming JSON data from Flutter
         if frappe.request and frappe.request.method == "POST":
             data = json.loads(frappe.request.data)
         else:
@@ -131,24 +126,20 @@ def register(**kwargs):
         gender = data.get("gender", "").lower()
         user_type = data.get("user_type", "email")
 
-        # Basic validation
         if not first_name or not email or not password:
             frappe.response["status"] = False
             frappe.response["message"] = "First name, email, and password are required"
             frappe.response["data"] = {}
             return
 
-        # Check if email already exists
         if frappe.db.exists("User", {"email": email}):
             frappe.response["status"] = False
             frappe.response["message"] = "Email already registered"
             frappe.response["data"] = {}
             return
 
-        # Create full name
         full_name = f"{first_name or ''} {last_name or ''}".strip()
 
-        # Create new user
         user = frappe.get_doc({
             "doctype": "User",
             "email": email,
@@ -163,13 +154,11 @@ def register(**kwargs):
         })
         user.insert(ignore_permissions=True)
 
-        # Set password securely
         user.new_password = password
         user.save(ignore_permissions=True)
 
         frappe.db.commit()
 
-        # Prepare JSON response
         frappe.response["status"] = True
         frappe.response["message"] = "Register successful"
         frappe.response["data"] = _register_user_to_dict(user)
@@ -189,6 +178,78 @@ def _register_user_to_dict(user):
         "last_name": user.last_name,
         "email": user.email,
         "gender": user.gender,
+        "login_type": user.bio or "",
+    }
+
+
+@frappe.whitelist(allow_guest=True)
+def login(**kwargs):
+    try:
+        if frappe.request and frappe.request.method == "POST":
+            data = json.loads(frappe.request.data)
+        else:
+            data = kwargs
+
+        email = data.get("email")
+        password = data.get("password")
+
+        if not email or not password:
+            frappe.response["status"] = False
+            frappe.response["message"] = "Email and password are required"
+            frappe.response["data"] = {}
+            return
+
+        if not frappe.db.exists("User", {"email": email}):
+            frappe.response["status"] = False
+            frappe.response["message"] = "Please register before login"
+            frappe.response["data"] = {}
+            return
+
+        user = frappe.get_doc("User", {"email": email})
+
+        if not user.enabled:
+            frappe.response["status"] = False
+            frappe.response["message"] = "Your account is disabled. Contact support."
+            frappe.response["data"] = {}
+            return
+
+        login_manager = LoginManager()
+        login_manager.authenticate(user=email, pwd=password)
+        login_manager.post_login()
+
+        logged_user = frappe.get_doc("User", frappe.session.user)
+
+        frappe.response["status"] = True
+        frappe.response["message"] = "Login successful"
+        frappe.response["data"] = _login_user_to_dict(logged_user)
+
+    except frappe.AuthenticationError:
+        frappe.response["status"] = False
+        frappe.response["message"] = "Invalid email or password"
+        frappe.response["data"] = {}
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Login API Error")
+        frappe.response["status"] = False
+        frappe.response["message"] = f"Server Error: {str(e)}"
+        frappe.response["data"] = {}
+
+
+def _login_user_to_dict(user):
+    profile_image = ""
+    if user.user_image:
+        profile_image = frappe.utils.get_url(user.user_image)
+
+    return {
+        "id": user.email,
+        "first_name": user.first_name,
+        "last_name": user.last_name,
+        "mobile": user.mobile_no or "",
+        "email": user.email,
+        "gender": user.gender or "",
+        "user_role": [],
+        "api_token": "", 
+        "profile_image": profile_image,
         "login_type": user.bio or "",
     }
 
