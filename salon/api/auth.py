@@ -164,8 +164,8 @@ def register(**kwargs):
         user.insert(ignore_permissions=True)
 
         # Set password securely
-        if password:
-            frappe.db.set_value("User", user.name, "password", frappe.utils.password.encrypt(password))
+        user.new_password = password
+        user.save(ignore_permissions=True)
 
         frappe.db.commit()
 
