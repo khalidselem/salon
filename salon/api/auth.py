@@ -123,12 +123,12 @@ def register(**kwargs):
         else:
             data = kwargs
 
-        first_name = data.get("firstName")
-        last_name = data.get("lastName")
+        first_name = data.get("first_name")
+        last_name = data.get("last_name")
         email = data.get("email")
         password = data.get("password")
         gender = data.get("gender", "").lower()
-        user_type = data.get("userType", "email")  # default if not provided
+        user_type = data.get("userType", "email")
 
         # Basic validation
         if not first_name or not email or not password:
