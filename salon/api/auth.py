@@ -117,22 +117,23 @@ def _user_to_dict(user):
 def register(**kwargs):
     """Register new user (no token needed, Flutter friendly)"""
     try:
-        # Parse incoming data
+        # Parse incoming JSON data from Flutter
         if frappe.request and frappe.request.method == "POST":
             data = json.loads(frappe.request.data)
         else:
             data = kwargs
 
-        first_name = data.get("first_name")
-        last_name = data.get("last_name")
+        first_name = data.get("firstName")
+        last_name = data.get("lastName")
         email = data.get("email")
-        login_type = data.get("login_type", "email")
-        profile_image = data.get("profile_image")
+        password = data.get("password")
+        gender = data.get("gender", "").lower()
+        user_type = data.get("userType", "email")  # default if not provided
 
         # Basic validation
-        if not first_name or not email:
+        if not first_name or not email or not password:
             frappe.response["status"] = False
-            frappe.response["message"] = "First name and email are required"
+            frappe.response["message"] = "First name, email, and password are required"
             frappe.response["data"] = {}
             return
 
@@ -154,10 +155,17 @@ def register(**kwargs):
             "last_name": last_name,
             "full_name": full_name,
             "enabled": 1,
-            "bio": login_type,
+            "gender": gender,
+            "bio": user_type,
             "send_welcome_email": 0
         })
         user.insert(ignore_permissions=True)
+
+        # Set password securely
+        if password:
+            frappe.db.set_value("User", user.name, "password", frappe.utils.password.encrypt(password))
+
+        frappe.db.commit()
 
         # Prepare JSON response
         frappe.response["status"] = True
@@ -177,8 +185,8 @@ def _register_user_to_dict(user):
         "id": user.name,
         "first_name": user.first_name,
         "last_name": user.last_name,
-        "username": user.username or "",
         "email": user.email,
+        "gender": user.gender,
         "login_type": user.bio or "",
     }
 
