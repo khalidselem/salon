@@ -78,7 +78,6 @@ def social_login(**kwargs):
             "last_name": last_name,
             "full_name": full_name,
             "enabled": 1,
-            "user_type": "WoWBeauty Customer",
             "bio": login_type,
             "user_image": profile_image or "",
             "send_welcome_email": 0
@@ -114,7 +113,72 @@ def _user_to_dict(user):
         "updated_at": str(user.modified),
     }
 
+@frappe.whitelist(allow_guest=True)
+def register(**kwargs):
+    """Register new user (no token needed, Flutter friendly)"""
+    try:
+        # Parse incoming data
+        if frappe.request and frappe.request.method == "POST":
+            data = json.loads(frappe.request.data)
+        else:
+            data = kwargs
+
+        first_name = data.get("first_name")
+        last_name = data.get("last_name")
+        email = data.get("email")
+        login_type = data.get("login_type", "email")
+        profile_image = data.get("profile_image")
+
+        # Basic validation
+        if not first_name or not email:
+            frappe.response["status"] = False
+            frappe.response["message"] = "First name and email are required"
+            frappe.response["data"] = {}
+            return
+
+        # Check if email already exists
+        if frappe.db.exists("User", {"email": email}):
+            frappe.response["status"] = False
+            frappe.response["message"] = "Email already registered"
+            frappe.response["data"] = {}
+            return
+
+        # Create full name
+        full_name = f"{first_name or ''} {last_name or ''}".strip()
+
+        # Create new user
+        user = frappe.get_doc({
+            "doctype": "User",
+            "email": email,
+            "first_name": first_name,
+            "last_name": last_name,
+            "full_name": full_name,
+            "enabled": 1,
+            "bio": login_type,
+            "send_welcome_email": 0
+        })
+        user.insert(ignore_permissions=True)
+
+        # Prepare JSON response
+        frappe.response["status"] = True
+        frappe.response["message"] = "Register successful"
+        frappe.response["data"] = _register_user_to_dict(user)
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Register API Error")
+        frappe.response["status"] = False
+        frappe.response["message"] = f"Server Error: {str(e)}"
+        frappe.response["data"] = {}
 
 
-
+def _register_user_to_dict(user):
+    """Format user info for Flutter"""
+    return {
+        "id": user.name,
+        "first_name": user.first_name,
+        "last_name": user.last_name,
+        "username": user.username or "",
+        "email": user.email,
+        "login_type": user.bio or "",
+    }
 
