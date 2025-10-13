@@ -10,7 +10,7 @@ from frappe.utils import get_files_path
 from frappe.utils.file_manager import save_file
 from frappe.utils import nowdate, nowtime, get_first_day, getdate
 from frappe.auth import LoginManager
-from frappe.utils.password import reset as reset_utils
+from frappe.core.doctype.user.user import reset_password
 
 def log_error(title, error):
     frappe.log_error(frappe.get_traceback(), title)
@@ -276,13 +276,15 @@ def forgot_password(**kwargs):
         # Check if user exists
         user_name = frappe.db.get_value("User", {"email": email}, "name")
         if not user_name:
-            frappe.response["status"] = False
-            frappe.response["message"] = "No account found with this email"
-            frappe.response["data"] = {}
+            frappe.response.update({
+                "status": False,
+                "message": "No account found with this email",
+                "data": {}
+            })
             return
 
-        # ✅ Use Frappe’s password reset util
-        reset_utils.send_password_reset_email(email)
+        # ✅ Use Frappe's internal password reset function
+        reset_password(user_name)
 
         frappe.response["status"] = True
         frappe.response["message"] = "Password reset email sent successfully"
