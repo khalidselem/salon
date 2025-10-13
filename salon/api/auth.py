@@ -256,9 +256,7 @@ def _login_user_to_dict(user):
 
 @frappe.whitelist(allow_guest=True)
 def forgot_password(**kwargs):
-    """Trigger Frappe's built-in password reset email."""
     try:
-        # Parse request body
         if frappe.request and frappe.request.method == "POST":
             data = json.loads(frappe.request.data)
         else:
@@ -273,7 +271,6 @@ def forgot_password(**kwargs):
             })
             return
 
-        # Check if user exists
         user_name = frappe.db.get_value("User", {"email": email}, "name")
         if not user_name:
             frappe.response.update({
@@ -286,7 +283,6 @@ def forgot_password(**kwargs):
         user = frappe.get_doc("User", user_name)
         user.validate_reset_password()
         user.reset_password(send_email=True)
-
 
         frappe.response.update({
             "status": True,
