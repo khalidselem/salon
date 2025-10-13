@@ -10,7 +10,7 @@ from frappe.utils import get_files_path
 from frappe.utils.file_manager import save_file
 from frappe.utils import nowdate, nowtime, get_first_day, getdate
 from frappe.auth import LoginManager
-from frappe.core.doctype.user.user import reset_password
+from frappe.utils.password import reset as reset_utils
 
 def log_error(title, error):
     frappe.log_error(frappe.get_traceback(), title)
@@ -257,8 +257,9 @@ def _login_user_to_dict(user):
 
 @frappe.whitelist(allow_guest=True)
 def forgot_password(**kwargs):
+    """Send password reset email using ERPNext built-in system."""
     try:
-        # Parse Flutter JSON
+        # Parse JSON from Flutter
         if frappe.request and frappe.request.method == "POST":
             data = json.loads(frappe.request.data)
         else:
@@ -272,6 +273,7 @@ def forgot_password(**kwargs):
             frappe.response["data"] = {}
             return
 
+        # Check if user exists
         user_name = frappe.db.get_value("User", {"email": email}, "name")
         if not user_name:
             frappe.response["status"] = False
@@ -279,8 +281,8 @@ def forgot_password(**kwargs):
             frappe.response["data"] = {}
             return
 
-        user = frappe.get_doc("User", user_name)
-        reset_password(user)
+        # ✅ Use Frappe’s password reset util
+        reset_utils.send_password_reset_email(email)
 
         frappe.response["status"] = True
         frappe.response["message"] = "Password reset email sent successfully"
