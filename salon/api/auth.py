@@ -297,6 +297,6 @@ def forgot_password(**kwargs):
         frappe.response.update({
             "status": False,
             "message": f"Server Error: {str(e)}",
-            "data": {}
+            "data": user_name
         })
 
