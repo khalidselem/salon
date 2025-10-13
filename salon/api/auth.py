@@ -258,6 +258,7 @@ def _login_user_to_dict(user):
 @frappe.whitelist(allow_guest=True)
 def forgot_password(**kwargs):
     try:
+        # Parse Flutter JSON
         if frappe.request and frappe.request.method == "POST":
             data = json.loads(frappe.request.data)
         else:
@@ -271,16 +272,18 @@ def forgot_password(**kwargs):
             frappe.response["data"] = {}
             return
 
-        if not frappe.db.exists("User", {"email": email}):
+        user_name = frappe.db.get_value("User", {"email": email}, "name")
+        if not user_name:
             frappe.response["status"] = False
-            frappe.response["message"] = "No account found with this email address"
+            frappe.response["message"] = "No account found with this email"
             frappe.response["data"] = {}
             return
 
-        reset_password(email)
+        user = frappe.get_doc("User", user_name)
+        reset_password(user)
 
         frappe.response["status"] = True
-        frappe.response["message"] = "Password reset email has been sent successfully"
+        frappe.response["message"] = "Password reset email sent successfully"
         frappe.response["data"] = {}
 
     except Exception as e:
