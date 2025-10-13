@@ -10,7 +10,6 @@ from frappe.utils import get_files_path
 from frappe.utils.file_manager import save_file
 from frappe.utils import nowdate, nowtime, get_first_day, getdate
 from frappe.auth import LoginManager
-from frappe.core.doctype.user.user import reset_password
 
 def log_error(title, error):
     frappe.log_error(frappe.get_traceback(), title)
@@ -257,20 +256,21 @@ def _login_user_to_dict(user):
 
 @frappe.whitelist(allow_guest=True)
 def forgot_password(**kwargs):
-    """Send password reset email using ERPNext built-in system."""
+    """Trigger Frappe's built-in password reset email."""
     try:
-        # Parse JSON from Flutter
+        # Parse request body
         if frappe.request and frappe.request.method == "POST":
             data = json.loads(frappe.request.data)
         else:
             data = kwargs
 
         email = data.get("email")
-
         if not email:
-            frappe.response["status"] = False
-            frappe.response["message"] = "Email is required"
-            frappe.response["data"] = {}
+            frappe.response.update({
+                "status": False,
+                "message": "Email is required",
+                "data": {}
+            })
             return
 
         # Check if user exists
@@ -283,15 +283,20 @@ def forgot_password(**kwargs):
             })
             return
 
-        # ✅ Use Frappe's internal password reset function
-        reset_password(user_name)
+        # ✅ Call Frappe's built-in method safely
+        frappe.call("frappe.core.doctype.user.user.reset_password", user=user_name)
 
-        frappe.response["status"] = True
-        frappe.response["message"] = "Password reset email sent successfully"
-        frappe.response["data"] = {}
+        frappe.response.update({
+            "status": True,
+            "message": "Password reset email sent successfully",
+            "data": {}
+        })
 
     except Exception as e:
-        frappe.log_error(frappe.get_traceback(), "Forgot Password Error")
-        frappe.response["status"] = False
-        frappe.response["message"] = f"Server Error: {str(e)}"
-        frappe.response["data"] = {}
+        frappe.log_error(frappe.get_traceback(), "Forgot Password API Error")
+        frappe.response.update({
+            "status": False,
+            "message": f"Server Error: {str(e)}",
+            "data": {}
+        })
+
