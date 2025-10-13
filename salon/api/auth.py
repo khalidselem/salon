@@ -283,8 +283,10 @@ def forgot_password(**kwargs):
             })
             return
 
-        # ✅ Call Frappe's built-in method safely
-        frappe.call("frappe.core.doctype.user.user.reset_password", user=user_name)
+        user = frappe.get_doc("User", user_name)
+        user.validate_reset_password()
+        user.reset_password(send_email=True)
+
 
         frappe.response.update({
             "status": True,
@@ -297,6 +299,6 @@ def forgot_password(**kwargs):
         frappe.response.update({
             "status": False,
             "message": f"Server Error: {str(e)}",
-            "data": user_name
+            "data": {}
         })
 
