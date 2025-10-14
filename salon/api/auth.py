@@ -393,6 +393,8 @@ def update_profile(**kwargs):
             user.mobile_no = data.get("mobile")
         if "gender" in data:
             user.gender = data.get("gender")
+        if "username" in data:
+            user.username = data.get("username")
 
         user.full_name = f"{user.first_name or ''} {user.last_name or ''}".strip()
         user.save(ignore_permissions=True)
@@ -420,6 +422,7 @@ def _user_to_dict(user):
         "first_name": user.first_name or "",
         "last_name": user.last_name or "",
         "email": user.email or "",
+        "username": user.username or "",
         "mobile": getattr(user, "mobile_no", "") or "",
         "gender": getattr(user, "gender", "") or "",
         "loginType": getattr(user, "bio", ""),
