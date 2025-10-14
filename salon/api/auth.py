@@ -357,3 +357,71 @@ def _user_detail_to_dict(user):
         "profile_image": user.user_image or frappe.utils.get_url(file_url) or "",
         "api_token": "",
     }
+
+@frappe.whitelist(allow_guest=True, methods=["POST"])
+def update_profile(**kwargs):
+    try:
+        if frappe.request and frappe.request.method == "POST":
+            data = frappe.form_dict or json.loads(frappe.request.data or "{}")
+        else:
+            data = kwargs
+
+        user_id = data.get("id") or frappe.session.user
+        if not user_id:
+            frappe.response.update({
+                "status": False,
+                "message": "User ID is required",
+                "data": {}
+            })
+            return
+
+        if frappe.db.exists("User", user_id):
+            user = frappe.get_doc("User", user_id)
+        else:
+            frappe.response.update({
+                "status": False,
+                "message": "User not found",
+                "data": {}
+            })
+            return
+
+        if "first_name" in data:
+            user.first_name = data.get("first_name")
+        if "last_name" in data:
+            user.last_name = data.get("last_name")
+        if "mobile" in data:
+            user.mobile_no = data.get("mobile")
+        if "gender" in data:
+            user.gender = data.get("gender")
+
+        user.full_name = f"{user.first_name or ''} {user.last_name or ''}".strip()
+        user.save(ignore_permissions=True)
+
+        # Prepare response
+        user_data = _user_to_dict(user)
+        frappe.response.update({
+            "status": True,
+            "message": "Profile updated successfully",
+            "data": user_data
+        })
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Update Profile Error")
+        frappe.response.update({
+            "status": False,
+            "message": f"Server Error: {str(e)}",
+            "data": {}
+        })
+
+
+def _user_to_dict(user):
+    return {
+        "id": user.name,
+        "first_name": user.first_name or "",
+        "last_name": user.last_name or "",
+        "email": user.email or "",
+        "mobile": getattr(user, "mobile_no", "") or "",
+        "gender": getattr(user, "gender", "") or "",
+        "loginType": getattr(user, "bio", ""),
+        "profileImage": user.user_image or "",
+    }
