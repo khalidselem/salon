@@ -298,3 +298,62 @@ def forgot_password(**kwargs):
             "data": {}
         })
 
+@frappe.whitelist(allow_guest=True, methods=["GET"])
+def user_detail(id=None):
+    """Get user details by ID (email or name)."""
+    try:
+        user_id = id or frappe.form_dict.get("id")
+        if not user_id:
+            frappe.response.update({
+                "status": False,
+                "message": "User ID is required",
+                "data": {}
+            })
+            return
+
+        user = frappe.get_doc("User", user_id) if frappe.db.exists("User", user_id) \
+            else frappe.get_doc("User", {"email": user_id})
+
+        user_data = _user_detail_to_dict(user)
+
+        frappe.response.update({
+            "status": True,
+            "message": "User details retrieved successfully",
+            "data": user_data
+        })
+
+    except frappe.DoesNotExistError:
+        frappe.response.update({
+            "status": False,
+            "message": "User not found",
+            "data": {}
+        })
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "User Detail API Error")
+        frappe.response.update({
+            "status": False,
+            "message": f"Server Error: {str(e)}",
+            "data": {}
+        })
+
+
+def _user_detail_to_dict(user):
+    file_url = frappe.db.get_value(
+        "File",
+        {"attached_to_doctype": "User", "attached_to_name": user.name},
+        "file_url"
+    )
+
+    return {
+        "id": user.name,
+        "first_name": user.first_name or "",
+        "last_name": user.last_name or "",
+        "username": getattr(user, "username", "") or "",
+        "email": user.email or "",
+        "mobile": getattr(user, "mobile_no", "") or "",
+        "gender": getattr(user, "gender", "") or "",
+        "phone_verified": getattr(user, "phone_verified", 0),
+        "login_type": getattr(user, "bio", ""),
+        "profile_image": user.user_image or frappe.utils.get_url(file_url) or "",
+        "api_token": "",
+    }
