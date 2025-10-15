@@ -41,7 +41,7 @@ def dashboard_detail():
 
         categories = frappe.get_all(
             "Categories",
-            filters={"disabled": 0},
+            filters={"disable": 0},
             fields=["name", "name_english", "name_arabic", "is_group", "image"]
         )
 
