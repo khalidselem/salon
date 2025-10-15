@@ -62,16 +62,12 @@ def dashboard_detail():
             "slider": slider_list
         }
 
-        return {
-            "status": True,
-            "message": "Dashboard details fetched successfully",
-            "data": response_data
-        }
+        frappe.response["status"] = True
+        frappe.response["message"] = "Dashboard details fetched successfully"
+        frappe.response["data"] = response_data
 
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), "Dashboard Detail Error")
-        return {
-            "status": False,
-            "message": f"Server Error: {str(e)}",
-            "data": {}
-        }            
+        frappe.response["status"] = False
+        frappe.response["message"] = f"Server Error: {str(e)}"
+        frappe.response["data"] = {}        
