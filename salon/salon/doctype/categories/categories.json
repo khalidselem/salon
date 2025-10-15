@@ -1,0 +1,107 @@
+{
+ "actions": [],
+ "autoname": "autoincrement",
+ "creation": "2025-10-15 13:53:58.829596",
+ "default_view": "List",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "name_english",
+  "name_arabic",
+  "disable",
+  "lft",
+  "rgt",
+  "is_group",
+  "old_parent",
+  "parent_categories",
+  "image"
+ ],
+ "fields": [
+  {
+   "fieldname": "name_english",
+   "fieldtype": "Data",
+   "label": "Name English"
+  },
+  {
+   "fieldname": "name_arabic",
+   "fieldtype": "Data",
+   "label": "Name Arabic"
+  },
+  {
+   "default": "0",
+   "fieldname": "disable",
+   "fieldtype": "Check",
+   "label": "Disable"
+  },
+  {
+   "fieldname": "lft",
+   "fieldtype": "Int",
+   "hidden": 1,
+   "label": "Left",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "rgt",
+   "fieldtype": "Int",
+   "hidden": 1,
+   "label": "Right",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "is_group",
+   "fieldtype": "Check",
+   "label": "Is Group"
+  },
+  {
+   "fieldname": "old_parent",
+   "fieldtype": "Link",
+   "label": "Old Parent",
+   "options": "Categories"
+  },
+  {
+   "fieldname": "parent_categories",
+   "fieldtype": "Link",
+   "label": "Parent Categories",
+   "options": "Categories"
+  },
+  {
+   "fieldname": "image",
+   "fieldtype": "Attach Image",
+   "label": "Image"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "is_tree": 1,
+ "links": [],
+ "modified": "2025-10-15 13:59:03.705109",
+ "modified_by": "Administrator",
+ "module": "Salon",
+ "name": "Categories",
+ "naming_rule": "Autoincrement",
+ "nsm_parent_field": "parent_categories",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1,
+ "track_seen": 1,
+ "track_views": 1
+}

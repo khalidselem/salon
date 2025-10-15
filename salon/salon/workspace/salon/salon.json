@@ -9,7 +9,6 @@
  "hide_custom": 0,
  "icon": "users",
  "idx": 0,
- "indicator_color": "green",
  "is_hidden": 0,
  "label": "Salon",
  "links": [
@@ -46,7 +45,7 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "Salon Configuration",
-   "link_count": 7,
+   "link_count": 8,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
@@ -106,7 +105,7 @@
    "is_query_report": 0,
    "label": "Categories & Sub Categories",
    "link_count": 0,
-   "link_to": "Item Group",
+   "link_to": "Categories",
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
@@ -120,9 +119,19 @@
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Slider",
+   "link_count": 0,
+   "link_to": "Slider",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
   }
  ],
- "modified": "2025-10-08 00:59:23.982462",
+ "modified": "2025-10-15 13:55:42.637803",
  "modified_by": "Administrator",
  "module": "Salon",
  "name": "Salon",
