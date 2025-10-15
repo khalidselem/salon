@@ -28,10 +28,8 @@ def branch_list(per_page=100, page=1):
         page = int(page)
         start = (page - 1) * per_page
 
-        # Define filters properly
         filters = {"disabled": 0}
 
-        # Fetch branches that are not disabled
         branches = frappe.get_all(
             "Branches",
             filters=filters,
@@ -46,7 +44,6 @@ def branch_list(per_page=100, page=1):
             limit_page_length=per_page
         )
 
-        # Build full data list for Flutter
         data = []
         for b in branches:
             branch_data = {
@@ -68,7 +65,6 @@ def branch_list(per_page=100, page=1):
             }
             data.append(branch_data)
 
-        # ✅ This part is key — no return, just assign
         frappe.response["status"] = True
         frappe.response["message"] = "branch list"
         frappe.response["data"] = data
