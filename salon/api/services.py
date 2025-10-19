@@ -55,13 +55,13 @@ def category_list():
         frappe.response["data"] = {}   
 
 @frappe.whitelist(allow_guest=True, methods=["GET"])
-def subcategory_list():
+def subcategory_list(parent_id=0):
     try:
         site_url = frappe.utils.get_url()
 
         categories = frappe.get_all(
             "Categories",
-            filters={"disable": 0, "is_group": 0},
+            filters={"disable": 0, "is_group": 0, "parent_categories": parent_id},
             fields=["name", "name_english", "name_arabic", "is_group", "image", "parent_categories"]
         )
 
