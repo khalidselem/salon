@@ -27,7 +27,7 @@ def get_employee_list(branch_id=None, service_ids=None):
     try:
         site_url = frappe.utils.get_url()
 
-        # --- collect employees in branch ---
+        # --- Collect employees from branch ---
         branch_employees = set()
         if branch_id and frappe.db.exists("Branches", branch_id):
             branch_doc = frappe.get_doc("Branches", branch_id)
@@ -35,51 +35,51 @@ def get_employee_list(branch_id=None, service_ids=None):
                 if row.employee:
                     branch_employees.add(row.employee)
 
-        # --- collect employees for each service ---
-        service_employees_list = []
-        if service_ids:
-            service_list = [s.strip() for s in service_ids.split(",") if s.strip()]
-            for sid in service_list:
-                if frappe.db.exists("Service", sid):
-                    service_doc = frappe.get_doc("Service", sid)
-                    employees_for_this_service = {
-                        row.employee for row in getattr(service_doc, "staff", []) if row.employee
-                    }
-                    if employees_for_this_service:
-                        service_employees_list.append(employees_for_this_service)
+        # --- Collect employees from all services ---
+        service_ids_list = [s.strip() for s in (service_ids or "").split(",") if s.strip()]
+        employees_in_all_services = None
 
-        # --- calculate intersection ---
-        # start with branch employees
-        final_employees = branch_employees.copy() if branch_employees else set()
+        if service_ids_list:
+            for sid in service_ids_list:
+                if not frappe.db.exists("Service", sid):
+                    continue
 
-        if service_employees_list:
-            # if branch provided, intersect with all services
-            if final_employees:
-                for s in service_employees_list:
-                    final_employees &= s
-            else:
-                # if no branch, intersect among all services
-                final_employees = set.intersection(*service_employees_list)
+                service_doc = frappe.get_doc("Service", sid)
+                service_employees = {
+                    row.employee for row in getattr(service_doc, "staff", []) if row.employee
+                }
 
-        # --- if no matching employees ---
-        if not final_employees:
-            frappe.response["status"] = True
-            frappe.response["message"] = "list fetched successfully"
-            frappe.response["data"] = []
-            return
+                # Intersect employees across all services
+                if employees_in_all_services is None:
+                    employees_in_all_services = service_employees
+                else:
+                    employees_in_all_services = employees_in_all_services.intersection(service_employees)
 
-        # --- fetch employee details ---
+        # --- Combine both filters with AND logic ---
+        if employees_in_all_services is not None:
+            valid_employees = branch_employees.intersection(employees_in_all_services)
+        else:
+            valid_employees = branch_employees
+
+        if not valid_employees:
+            return {
+                "status": True,
+                "message": "list fetched successfully",
+                "data": []
+            }
+
+        # --- Fetch employee details ---
         employees = frappe.get_all(
             "Employee",
-            filters={"name": ["in", list(final_employees)], "status": "Active"},
+            filters={"name": ["in", list(valid_employees)], "status": "Active"},
             fields=[
                 "name", "first_name", "last_name", "employee_name",
                 "user_id", "cell_number", "date_of_birth",
-                "gender", "date_of_joining", "image", "status"
+                "gender", "date_of_joining", "image"
             ],
         )
 
-        # --- format output ---
+        # --- Prepare response data ---
         data = []
         for emp in employees:
             data.append({
@@ -98,15 +98,16 @@ def get_employee_list(branch_id=None, service_ids=None):
                 "rating_star": 5,
             })
 
-        # ✅ flat response
-        frappe.response["status"] = True
-        frappe.response["message"] = "list fetched successfully"
-        frappe.response["data"] = data
+        return {
+            "status": True,
+            "message": "list fetched successfully",
+            "data": data
+        }
 
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), "get_employee_list Error")
-        frappe.response["status"] = False
-        frappe.response["message"] = f"Server Error: {str(e)}"
-        frappe.response["data"] = []
-
-
+        return {
+            "status": False,
+            "message": f"Server Error: {str(e)}",
+            "data": []
+        }
