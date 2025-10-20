@@ -22,12 +22,14 @@ def flatten(lis):
         else:        
             yield item
 
+import frappe
+
 @frappe.whitelist(allow_guest=True)
 def get_employee_list(branch_id=None, service_ids=None):
     try:
         site_url = frappe.utils.get_url()
 
-        # --- Collect employees from branch ---
+        # --- Collect branch employees ---
         branch_employees = set()
         if branch_id and frappe.db.exists("Branches", branch_id):
             branch_doc = frappe.get_doc("Branches", branch_id)
@@ -35,7 +37,7 @@ def get_employee_list(branch_id=None, service_ids=None):
                 if row.employee:
                     branch_employees.add(row.employee)
 
-        # --- Collect employees from all services ---
+        # --- Collect employees appearing in ALL given services ---
         service_ids_list = [s.strip() for s in (service_ids or "").split(",") if s.strip()]
         employees_in_all_services = None
 
@@ -43,19 +45,14 @@ def get_employee_list(branch_id=None, service_ids=None):
             for sid in service_ids_list:
                 if not frappe.db.exists("Service", sid):
                     continue
-
                 service_doc = frappe.get_doc("Service", sid)
-                service_employees = {
-                    row.employee for row in getattr(service_doc, "staff", []) if row.employee
-                }
-
-                # Intersect employees across all services
+                service_employees = {row.employee for row in getattr(service_doc, "staff", []) if row.employee}
                 if employees_in_all_services is None:
                     employees_in_all_services = service_employees
                 else:
                     employees_in_all_services = employees_in_all_services.intersection(service_employees)
 
-        # --- Combine both filters with AND logic ---
+        # --- Must exist in both branch AND all services ---
         if employees_in_all_services is not None:
             valid_employees = branch_employees.intersection(employees_in_all_services)
         else:
@@ -97,6 +94,12 @@ def get_employee_list(branch_id=None, service_ids=None):
                 "status": 1,
                 "rating_star": 5,
             })
+
+        # ✅ Clean JSON response (not nested under "message")
+        frappe.local.response["http_status_code"] = 200
+        frappe.local.response["type"] = "json"
+        frappe.local.response["message"] = None
+        frappe.local.response["data"] = None
 
         return {
             "status": True,
