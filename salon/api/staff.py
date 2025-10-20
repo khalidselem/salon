@@ -22,48 +22,56 @@ def flatten(lis):
         else:        
             yield item
 
-from frappe.query_builder import Field
-import frappe
-
-import frappe
-
 @frappe.whitelist(allow_guest=True)
 def get_employee_list(branch_id=None, service_ids=None):
     try:
         site_url = frappe.utils.get_url()
 
-        # Collect employee names from Branch staff table
-        employee_names = set()
+        # --- collect employees in branch ---
+        branch_employees = set()
+        if branch_id and frappe.db.exists("Branches", branch_id):
+            branch_doc = frappe.get_doc("Branches", branch_id)
+            for row in getattr(branch_doc, "staff", []):
+                if row.employee:
+                    branch_employees.add(row.employee)
 
-        # --- Filter by branch ---
-        if branch_id:
-            if frappe.db.exists("Branches", branch_id):
-                branch_doc = frappe.get_doc("Branches", branch_id)
-                for row in getattr(branch_doc, "staff", []):
-                    if row.employee:
-                        employee_names.add(row.employee)
-
-        # --- Filter by service(s) ---
+        # --- collect employees for each service ---
+        service_employees_list = []
         if service_ids:
             service_list = [s.strip() for s in service_ids.split(",") if s.strip()]
             for sid in service_list:
                 if frappe.db.exists("Service", sid):
                     service_doc = frappe.get_doc("Service", sid)
-                    for row in getattr(service_doc, "staff", []):
-                        if row.employee:
-                            employee_names.add(row.employee)
+                    employees_for_this_service = {
+                        row.employee for row in getattr(service_doc, "staff", []) if row.employee
+                    }
+                    if employees_for_this_service:
+                        service_employees_list.append(employees_for_this_service)
 
-        # If nothing found, return empty
-        if not employee_names:
+        # --- calculate intersection ---
+        # start with branch employees
+        final_employees = branch_employees.copy() if branch_employees else set()
+
+        if service_employees_list:
+            # if branch provided, intersect with all services
+            if final_employees:
+                for s in service_employees_list:
+                    final_employees &= s
+            else:
+                # if no branch, intersect among all services
+                final_employees = set.intersection(*service_employees_list)
+
+        # --- if no matching employees ---
+        if not final_employees:
             frappe.response["status"] = True
             frappe.response["message"] = "list fetched successfully"
             frappe.response["data"] = []
             return
 
-        # Fetch Employees
+        # --- fetch employee details ---
         employees = frappe.get_all(
             "Employee",
-            filters={"name": ["in", list(employee_names)], "status": "Active"},
+            filters={"name": ["in", list(final_employees)], "status": "Active"},
             fields=[
                 "name", "first_name", "last_name", "employee_name",
                 "user_id", "cell_number", "date_of_birth",
@@ -71,7 +79,7 @@ def get_employee_list(branch_id=None, service_ids=None):
             ],
         )
 
-        # Format output
+        # --- format output ---
         data = []
         for emp in employees:
             data.append({
@@ -90,7 +98,7 @@ def get_employee_list(branch_id=None, service_ids=None):
                 "rating_star": 5,
             })
 
-        # ✅ Return final response (flat)
+        # ✅ flat response
         frappe.response["status"] = True
         frappe.response["message"] = "list fetched successfully"
         frappe.response["data"] = data
@@ -100,4 +108,5 @@ def get_employee_list(branch_id=None, service_ids=None):
         frappe.response["status"] = False
         frappe.response["message"] = f"Server Error: {str(e)}"
         frappe.response["data"] = []
+
 
