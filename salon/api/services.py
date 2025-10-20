@@ -133,6 +133,7 @@ def service_list(category_id=None, subcategory_id=None, search=None, branch_id=N
                     branches = [s.get("branches")]
                 if branch_id in branches:
                     filtered.append(s)
+                    
             services = filtered
 
         # 🔍 Search in Arabic + English names
@@ -166,6 +167,91 @@ def service_list(category_id=None, subcategory_id=None, search=None, branch_id=N
             "status": True,
             "message": "service list fetched successfully",
             "data": formatted
+        }
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Service List Error")
+        return {
+            "status": False,
+            "message": f"Server Error: {e}",
+            "data": []
+        }
+
+@frappe.whitelist(allow_guest=True)
+def service_list(category_id=None, subcategory_id=None, search=None, branch_id=None):
+    try:
+        site_url = frappe.utils.get_url()
+
+        # Fetch base service data (no branches field directly)
+        services = frappe.get_all(
+            "Service",
+            fields=[
+                "name",
+                "english_name",
+                "arabic_name",
+                "english_description",
+                "arabic_description",
+                "price",
+                "duration",
+                "category",
+                "subcategory",
+                "image",
+                "disabled",
+            ],
+            filters={"disabled": 0},
+            order_by="creation desc"
+        )
+
+        filtered_services = []
+
+        for s in services:
+            # 🏢 Branch filter — only if branch_id provided
+            if branch_id:
+                # Get branches from child table
+                branch_links = frappe.get_all(
+                    "Branches",
+                    filters={"parent": s.name},
+                    fields=["branch"]
+                )
+                branch_ids = [b.branch for b in branch_links]
+
+                # Skip if not matching
+                if branch_id not in branch_ids:
+                    continue
+
+            # 🔍 Category / Subcategory filter
+            if category_id and s.get("category") != category_id:
+                continue
+            if subcategory_id and s.get("subcategory") != subcategory_id:
+                continue
+
+            # 🔍 Search filter
+            if search:
+                term = search.lower()
+                if term not in (s.get("english_name") or "").lower() and \
+                   term not in (s.get("arabic_name") or "").lower():
+                    continue
+
+            # ✅ Add to final list
+            filtered_services.append({
+                "id": s.get("name"),
+                "name": s.get("english_name"),
+                "name_ar": s.get("arabic_name"),
+                "description_en": s.get("english_description"),
+                "description_ar": s.get("arabic_description"),
+                "default_price": s.get("price"),
+                "duration_min": s.get("duration"),
+                "category_id": s.get("category"),
+                "status": 1,
+                "sub_category_id": s.get("subcategory"),
+                "service_image": f"{site_url}{s['image']}" if s.get("image") else None,
+                "is_gift_category": 0
+            })
+
+        return {
+            "status": True,
+            "message": "service list fetched successfully",
+            "data": filtered_services
         }
 
     except Exception as e:
