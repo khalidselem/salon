@@ -30,7 +30,7 @@ def get_employee_list(branch_id=None, service_ids=None):
     try:
         site_url = frappe.utils.get_url()
 
-        # base active filter using QueryBuilder
+        # Base query: only Active employees
         query = (
             frappe.qb.from_("tabEmployee")
             .select(
@@ -49,125 +49,38 @@ def get_employee_list(branch_id=None, service_ids=None):
             .where(Field("status") == "Active")
         )
 
-        # --- BRANCH: resolve branch_doc robustly ---
-        branch_employee_names = None
+        # Filter by branch (child table "Branches" with parent = Employee)
         if branch_id:
-            branch_doc = None
-            # 1) try as docname
-            try:
-                branch_doc = frappe.get_doc("Branches", branch_id)
-            except Exception:
-                branch_doc = None
-
-            # 2) try numeric lookup by common fields if doc not found
-            if not branch_doc:
-                # attempt common field names that may contain numeric id
-                for fld in ("id", "branch_id", "idx", "name1"):
-                    try:
-                        val = frappe.db.get_value("Branches", {fld: branch_id}, "name")
-                        if val:
-                            try:
-                                branch_doc = frappe.get_doc("Branches", val)
-                                break
-                            except Exception:
-                                branch_doc = None
-                    except Exception:
-                        pass
-
-            # 3) fallback: try to find a branch whose name or name_english/name1 contains the branch_id string
-            if not branch_doc:
-                matches = frappe.get_all(
-                    "Branches",
-                    filters=[["name", "like", f"%{branch_id}%"]],
-                    limit_page_length=1,
-                )
-                if matches:
-                    try:
-                        branch_doc = frappe.get_doc("Branches", matches[0].name)
-                    except Exception:
-                        branch_doc = None
-
-            # Log what we found for debugging
-            frappe.logger().debug(f"[get_employee_list] branch_id param: {branch_id}; resolved branch_doc: {getattr(branch_doc, 'name', None)}")
-
-            # If we indeed have a branch_doc, extract staff child table
-            if branch_doc:
-                staff_rows = getattr(branch_doc, "staff", []) or []
-                # staff_rows may be list of DocTypes/Row objects or dicts
-                branch_employee_names = []
-                for r in staff_rows:
-                    # row could be a Document or dict
-                    emp = getattr(r, "employee", None) or r.get("employee") if isinstance(r, dict) else None
-                    if not emp:
-                        # try common alt fieldnames
-                        emp = getattr(r, "employee_name", None) or (r.get("employee_name") if isinstance(r, dict) else None)
-                    if emp:
-                        branch_employee_names.append(emp)
-                frappe.logger().debug(f"[get_employee_list] branch staff rows count: {len(staff_rows)} resolved employees: {branch_employee_names}")
-
+            branch_doc = frappe.get_doc("Branches", branch_id)
+            employee_names = [row.employee for row in getattr(branch_doc, "staff", [])]
+            if employee_names:
+                query = query.where(Field("name").isin(employee_names))
             else:
-                # branch not found — log that and return empty list (matching expected shape)
-                frappe.logger().debug(f"[get_employee_list] branch lookup failed for param: {branch_id}")
                 frappe.response["status"] = True
                 frappe.response["message"] = "list fetched successfully"
                 frappe.response["data"] = []
                 return
 
-            # If branch found but no linked employees, return empty list
-            if not branch_employee_names:
-                frappe.logger().debug(f"[get_employee_list] found branch but no staff linked.")
-                frappe.response["status"] = True
-                frappe.response["message"] = "list fetched successfully"
-                frappe.response["data"] = []
-                return
-
-            # Apply branch filter to query
-            query = query.where(Field("name").isin(branch_employee_names))
-
-        # --- SERVICE: collect employees assigned to service(s) ---
+        # Filter by services (Service.doctype has child table 'staff' linking employees)
         if service_ids:
+            service_ids = [s.strip() for s in service_ids.split(",") if s.strip()]
             employees_for_services = set()
-            # allow comma separated list or a single value
-            service_list = [s.strip() for s in (service_ids or "").split(",") if s.strip()]
-            for sid in service_list:
-                service_doc = None
-                # try docname
+            for sid in service_ids:
                 try:
                     service_doc = frappe.get_doc("Service", sid)
+                    for row in getattr(service_doc, "staff", []):
+                        employees_for_services.add(row.employee)
                 except Exception:
-                    service_doc = None
+                    # ignore missing services
+                    pass
 
-                # fallback: try find by english_name or name like
-                if not service_doc:
-                    matches = frappe.get_all("Service", filters=[["name", "like", f"%{sid}%"]], limit_page_length=1)
-                    if matches:
-                        try:
-                            service_doc = frappe.get_doc("Service", matches[0].name)
-                        except Exception:
-                            service_doc = None
-
-                if not service_doc:
-                    frappe.logger().debug(f"[get_employee_list] service lookup failed for: {sid}")
-                    continue
-
-                # staff child table on Service doc
-                staff_rows = getattr(service_doc, "staff", []) or []
-                for r in staff_rows:
-                    emp = getattr(r, "employee", None) or (r.get("employee") if isinstance(r, dict) else None)
-                    if emp:
-                        employees_for_services.add(emp)
-
-                frappe.logger().debug(f"[get_employee_list] service {sid} staff count: {len(staff_rows)}")
-
-            if not employees_for_services:
-                frappe.logger().debug("[get_employee_list] no employees found for given services")
+            if employees_for_services:
+                query = query.where(Field("name").isin(list(employees_for_services)))
+            else:
                 frappe.response["status"] = True
                 frappe.response["message"] = "list fetched successfully"
                 frappe.response["data"] = []
                 return
-
-            # apply service filter
-            query = query.where(Field("name").isin(list(employees_for_services)))
 
         # Execute
         employees = query.run(as_dict=True)
