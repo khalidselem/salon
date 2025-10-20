@@ -61,26 +61,26 @@ def get_employee_list(branch_id=None, service_ids=None):
                 frappe.response["data"] = []
                 return
 
-        # Filter by services (Service.doctype has child table 'staff' linking employees)
-        if service_ids:
-            service_ids = [s.strip() for s in service_ids.split(",") if s.strip()]
-            employees_for_services = set()
-            for sid in service_ids:
-                try:
-                    service_doc = frappe.get_doc("Services", sid)
-                    for row in getattr(service_doc, "staff", []):
-                        employees_for_services.add(row.employee)
-                except Exception:
-                    # ignore missing services
-                    pass
+        # # Filter by services (Service.doctype has child table 'staff' linking employees)
+        # if service_ids:
+        #     service_ids = [s.strip() for s in service_ids.split(",") if s.strip()]
+        #     employees_for_services = set()
+        #     for sid in service_ids:
+        #         try:
+        #             service_doc = frappe.get_doc("Services", sid)
+        #             for row in getattr(service_doc, "staff", []):
+        #                 employees_for_services.add(row.employee)
+        #         except Exception:
+        #             # ignore missing services
+        #             pass
 
-            if employees_for_services:
-                query = query.where(Field("name").isin(list(employees_for_services)))
-            else:
-                frappe.response["status"] = True
-                frappe.response["message"] = "list fetched successfully"
-                frappe.response["data"] = []
-                return
+        #     if employees_for_services:
+        #         query = query.where(Field("name").isin(list(employees_for_services)))
+        #     else:
+        #         frappe.response["status"] = True
+        #         frappe.response["message"] = "list fetched successfully"
+        #         frappe.response["data"] = []
+        #         return
 
         # Execute
         employees = query.run(as_dict=True)
