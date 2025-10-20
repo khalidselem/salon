@@ -181,8 +181,7 @@ def service_list(category_id=None, subcategory_id=None, search=None, branch_id=N
 def service_list(category_id=None, subcategory_id=None, search=None, branch_id=None):
     try:
         site_url = frappe.utils.get_url()
-
-        # Fetch base service data (no branches field directly)
+        
         services = frappe.get_all(
             "Service",
             fields=[
@@ -205,9 +204,7 @@ def service_list(category_id=None, subcategory_id=None, search=None, branch_id=N
         filtered_services = []
 
         for s in services:
-            # 🏢 Branch filter — only if branch_id provided
             if branch_id:
-                # Get branches from child table
                 branch_links = frappe.get_all(
                     "Branches",
                     filters={"parent": s.name},
@@ -215,24 +212,20 @@ def service_list(category_id=None, subcategory_id=None, search=None, branch_id=N
                 )
                 branch_ids = [b.branch for b in branch_links]
 
-                # Skip if not matching
                 if branch_id not in branch_ids:
                     continue
 
-            # 🔍 Category / Subcategory filter
             if category_id and s.get("category") != category_id:
                 continue
             if subcategory_id and s.get("subcategory") != subcategory_id:
                 continue
 
-            # 🔍 Search filter
             if search:
                 term = search.lower()
                 if term not in (s.get("english_name") or "").lower() and \
                    term not in (s.get("arabic_name") or "").lower():
                     continue
 
-            # ✅ Add to final list
             filtered_services.append({
                 "id": s.get("name"),
                 "name": s.get("english_name"),
@@ -248,16 +241,12 @@ def service_list(category_id=None, subcategory_id=None, search=None, branch_id=N
                 "is_gift_category": 0
             })
 
-        return {
-            "status": True,
-            "message": "service list fetched successfully",
-            "data": filtered_services
-        }
+        frappe.response["status"] = True
+        frappe.response["message"] = "service list fetched successfully"
+        frappe.response["data"] = filtered_services
 
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), "Service List Error")
-        return {
-            "status": False,
-            "message": f"Server Error: {e}",
-            "data": []
-        }
+        frappe.response["status"] = False
+        frappe.response["message"] = f"Server Error: {e}"
+        frappe.response["data"] = []
