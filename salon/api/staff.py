@@ -25,85 +25,72 @@ def flatten(lis):
 from frappe.query_builder import Field
 import frappe
 
+import frappe
+
 @frappe.whitelist(allow_guest=True)
 def get_employee_list(branch_id=None, service_ids=None):
     try:
         site_url = frappe.utils.get_url()
 
-        # Base query: only Active employees
-        query = (
-            frappe.qb.from_("tabEmployee")
-            .select(
-                "name",
-                "first_name",
-                "last_name",
-                "employee_name",
-                "user_id",
-                "cell_number",
-                "date_of_birth",
-                "gender",
-                "date_of_joining",
-                "image",
-                "status",
-            )
-            .where(Field("status") == "Active")
-        )
+        # Collect employee names from Branch staff table
+        employee_names = set()
 
-        # Filter by branch (child table "Branches" with parent = Employee)
+        # --- Filter by branch ---
         if branch_id:
-            branch_doc = frappe.get_doc("Branches", branch_id)
-            employee_names = [row.employee for row in getattr(branch_doc, "staff", [])]
-            if employee_names:
-                query = query.where(Field("name").isin(employee_names))
-            else:
-                frappe.response["status"] = True
-                frappe.response["message"] = "list fetched successfully"
-                frappe.response["data"] = []
-                return
+            if frappe.db.exists("Branches", branch_id):
+                branch_doc = frappe.get_doc("Branches", branch_id)
+                for row in getattr(branch_doc, "staff", []):
+                    if row.employee:
+                        employee_names.add(row.employee)
 
-        # Filter by services (Service.doctype has child table 'staff' linking employees)
+        # --- Filter by service(s) ---
         if service_ids:
-            service_ids = [s.strip() for s in service_ids.split(",") if s.strip()]
-            employees_for_services = set()
-            for sid in service_ids:
-                try:
+            service_list = [s.strip() for s in service_ids.split(",") if s.strip()]
+            for sid in service_list:
+                if frappe.db.exists("Service", sid):
                     service_doc = frappe.get_doc("Service", sid)
                     for row in getattr(service_doc, "staff", []):
-                        employees_for_services.add(row.employee)
-                except Exception:
-                    # ignore missing services
-                    pass
+                        if row.employee:
+                            employee_names.add(row.employee)
 
-            if employees_for_services:
-                query = query.where(Field("name").isin(list(employees_for_services)))
-            else:
-                frappe.response["status"] = True
-                frappe.response["message"] = "list fetched successfully"
-                frappe.response["data"] = []
-                return
+        # If nothing found, return empty
+        if not employee_names:
+            frappe.response["status"] = True
+            frappe.response["message"] = "list fetched successfully"
+            frappe.response["data"] = []
+            return
 
-        # Execute
-        employees = query.run(as_dict=True)
+        # Fetch Employees
+        employees = frappe.get_all(
+            "Employee",
+            filters={"name": ["in", list(employee_names)], "status": "Active"},
+            fields=[
+                "name", "first_name", "last_name", "employee_name",
+                "user_id", "cell_number", "date_of_birth",
+                "gender", "date_of_joining", "image", "status"
+            ],
+        )
+
+        # Format output
         data = []
-
         for emp in employees:
             data.append({
-                "id": emp.get("name"),
-                "first_name": emp.get("first_name"),
-                "last_name": emp.get("last_name"),
-                "full_name": emp.get("employee_name"),
-                "email": frappe.db.get_value("User", emp.get("user_id"), "email") if emp.get("user_id") else None,
-                "mobile": emp.get("cell_number"),
-                "gender": emp.get("gender"),
-                "date_of_birth": emp.get("date_of_birth"),
-                "joining_date": emp.get("date_of_joining"),
-                "profile_image": f"{site_url}{emp.get('image')}" if emp.get("image") else "",
+                "id": emp.name,
+                "first_name": emp.first_name,
+                "last_name": emp.last_name,
+                "full_name": emp.employee_name,
+                "email": frappe.db.get_value("User", emp.user_id, "email") if emp.user_id else None,
+                "mobile": emp.cell_number,
+                "gender": emp.gender,
+                "date_of_birth": emp.date_of_birth,
+                "joining_date": emp.date_of_joining,
+                "profile_image": f"{site_url}{emp.image}" if emp.image else "",
                 "holiday": "Friday",
                 "status": 1,
                 "rating_star": 5,
             })
 
-        # *** IMPORTANT: set frappe.response to control top-level JSON (no "message" wrapper) ***
+        # ✅ Return final response (flat)
         frappe.response["status"] = True
         frappe.response["message"] = "list fetched successfully"
         frappe.response["data"] = data
@@ -113,3 +100,4 @@ def get_employee_list(branch_id=None, service_ids=None):
         frappe.response["status"] = False
         frappe.response["message"] = f"Server Error: {str(e)}"
         frappe.response["data"] = []
+
