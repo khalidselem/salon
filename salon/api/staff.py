@@ -24,19 +24,9 @@ def flatten(lis):
 
 @frappe.whitelist(allow_guest=True)
 def get_employee_list(branch_id=None, service_ids=None):
-    """
-    Return employees that are:
-      - in the given branch (if branch_id provided)
-      AND
-      - in EVERY service listed in service_ids (if provided)
-
-    Response is set via frappe.response to ensure top-level JSON keys:
-      frappe.response["status"], ["message"], ["data"]
-    """
     try:
         site_url = frappe.utils.get_url()
 
-        # --- collect employees in branch (if branch_id provided) ---
         branch_employees = None
         if branch_id:
             if frappe.db.exists("Branches", branch_id):
@@ -45,17 +35,13 @@ def get_employee_list(branch_id=None, service_ids=None):
                     (row.employee or "").strip() for row in getattr(branch_doc, "staff", []) if (row.employee or "").strip()
                 }
             else:
-                # branch not found -> no employees
                 branch_employees = set()
 
-        # --- collect employees that appear in ALL provided services ---
         employees_in_all_services = None
         service_list = [s.strip() for s in (service_ids or "").split(",") if s.strip()]
         if service_list:
             for sid in service_list:
-                # try direct docname lookup first
                 if not frappe.db.exists("Service", sid):
-                    # try fuzzy lookup by english_name or name containing sid
                     matches = frappe.get_all("Service", filters=[["english_name", "like", f"%{sid}%"]], limit_page_length=1)
                     if matches:
                         sid_use = matches[0].name
@@ -69,39 +55,35 @@ def get_employee_list(branch_id=None, service_ids=None):
                     (row.employee or "").strip() for row in getattr(service_doc, "staff", []) if (row.employee or "").strip()
                 }
 
-                # initialize or intersect
                 if employees_in_all_services is None:
                     employees_in_all_services = staff_set
                 else:
                     employees_in_all_services &= staff_set
 
-            # if after processing services none found, ensure it's empty set
             if employees_in_all_services is None:
                 employees_in_all_services = set()
 
-        # --- compute final valid employees (AND logic) ---
         if branch_employees is not None and employees_in_all_services is not None:
-            # branch provided AND services provided -> intersection
+
             valid_employees = branch_employees & employees_in_all_services
         elif branch_employees is not None:
-            # only branch provided
+
             valid_employees = branch_employees
         elif employees_in_all_services is not None:
-            # only services provided
+
             valid_employees = employees_in_all_services
         else:
-            # neither provided -> no filter: return all active employees
+
             all_active = frappe.get_all("Employee", filters={"status": "Active"}, pluck="name")
             valid_employees = set(all_active or [])
 
-        # If no matching employees, return empty array with correct top-level shape
+
         if not valid_employees:
             frappe.response["status"] = True
             frappe.response["message"] = "list fetched successfully"
             frappe.response["data"] = []
             return
 
-        # --- fetch employee details for the valid_employees set ---
         employees = frappe.get_all(
             "Employee",
             filters={"name": ["in", list(valid_employees)], "status": "Active"},
@@ -130,7 +112,6 @@ def get_employee_list(branch_id=None, service_ids=None):
                 "rating_star": 5,
             })
 
-        # set top-level response keys (this ensures no {"message": {...}} wrapper)
         frappe.response["status"] = True
         frappe.response["message"] = "list fetched successfully"
         frappe.response["data"] = data
