@@ -9,6 +9,7 @@ from frappe import _
 from frappe.utils import get_files_path
 from frappe.utils.file_manager import save_file
 from frappe.utils import nowdate, nowtime, get_first_day, getdate
+from datetime import datetime, timedelta
 
 def log_error(title, error):
     frappe.log_error(frappe.get_traceback(), title)
@@ -20,7 +21,6 @@ def flatten(lis):
                 yield x
         else:        
             yield item
-
 
 @frappe.whitelist(allow_guest=True)
 def get_branch_configuration(branch_id=None, employee_id=None):
@@ -52,15 +52,29 @@ def get_branch_configuration(branch_id=None, employee_id=None):
         for s in slots:
             start = s.get("start_time")
             duration = s.get("duration") or 0
-            end = None
+            start_dt = None
+            end_time_str = ""
+            
             try:
-                if start:
-                    import datetime
-                    start_dt = datetime.datetime.strptime(start, "%H:%M")
-                    end_dt = start_dt + datetime.timedelta(minutes=duration)
-                    end = end_dt.strftime("%H:%M")
-            except Exception:
-                end = ""
+                if isinstance(start, datetime):
+                    start_dt = start
+                elif isinstance(start, str):
+                    time_str = start.strip()
+                    for fmt in ("%H:%M:%S", "%H:%M", "%I:%M %p"):
+                        try:
+                            start_dt = datetime.strptime(time_str, fmt)
+                            break
+                        except ValueError:
+                            continue
+                    if not start_dt:
+                        raise ValueError(f"Unknown time format: {time_str}")
+
+                if start_dt:
+                    end_dt = start_dt + timedelta(minutes=duration)
+                    end_time_str = end_dt.strftime("%H:%M")
+            except Exception as e:
+                frappe.log_error(f"Time parsing failed for slot {s.get('id')}: {e}", "Time Slot Format Error")
+
 
             slot_data.append({
                 "branch_id": branch_id,
