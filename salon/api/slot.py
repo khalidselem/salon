@@ -54,17 +54,24 @@ def get_branch_configuration(branch_id=None, employee_id=None):
             duration = s.get("duration") or 0
             end = None
             try:
-               if start:
-                    parts = start.split(":")
-                    hours = int(parts[0])
-                    minutes = int(parts[1])
-                    total_minutes = hours * 60 + minutes + duration
-                    end_hour = (total_minutes // 60) % 24
-                    end_minute = total_minutes % 60
-                    end = f"{end_hour:02d}:{end_minute:02d}:00"
-               else:
+                if start:
+                    # Ensure string format (convert from datetime/time if needed)
+                    start_str = str(start)
+                    # Handle both "22:30" and "22:30:00"
+                    time_parts = start_str.split(":")
+                    if len(time_parts) >= 2:
+                        hours = int(time_parts[0])
+                        minutes = int(time_parts[1])
+                        total_minutes = hours * 60 + minutes + duration
+                        end_hour = (total_minutes // 60) % 24
+                        end_minute = total_minutes % 60
+                        end = f"{end_hour:02d}:{end_minute:02d}:00"
+                    else:
+                        end = ""
+                else:
                     end = ""
-            except Exception:
+            except Exception as e:
+                frappe.log_error(f"Time parse error: {e}", "Branch Slot Time Calc")
                 end = ""
 
             slot_data.append({
