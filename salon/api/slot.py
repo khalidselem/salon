@@ -54,11 +54,16 @@ def get_branch_configuration(branch_id=None, employee_id=None):
             duration = s.get("duration") or 0
             end = None
             try:
-                if start:
-                    import datetime
-                    start_dt = datetime.datetime.strptime(start, "%H:%M")
-                    end_dt = start_dt + datetime.timedelta(minutes=duration)
-                    end = end_dt.strftime("%H:%M")
+               if start:
+                    parts = start.split(":")
+                    hours = int(parts[0])
+                    minutes = int(parts[1])
+                    total_minutes = hours * 60 + minutes + duration
+                    end_hour = (total_minutes // 60) % 24
+                    end_minute = total_minutes % 60
+                    end = f"{end_hour:02d}:{end_minute:02d}:00"
+               else:
+                    end = ""
             except Exception:
                 end = ""
 
