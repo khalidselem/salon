@@ -32,8 +32,6 @@ def get_branch_configuration(branch_id=None, employee_id=None):
             return
 
         branch_doc = frappe.get_doc("Branches", branch_id)
-
-      
         slot_ids = [row.time_slot for row in getattr(branch_doc, "slot_time", []) if row.time_slot]
 
         if not slot_ids:
@@ -54,7 +52,7 @@ def get_branch_configuration(branch_id=None, employee_id=None):
             duration = s.get("duration") or 0
             start_dt = None
             end_time_str = ""
-            
+
             try:
                 if isinstance(start, datetime):
                     start_dt = start
@@ -79,10 +77,10 @@ def get_branch_configuration(branch_id=None, employee_id=None):
             slot_data.append({
                 "branch_id": branch_id,
                 "id": s.get("id"),
-                "start_time": start,
-                "end_time": end,
+                "start_time": start_dt.strftime("%H:%M") if start_dt else "",
+                "end_time": end_time_str,
                 "duration": duration,
-                "is_available": True
+                "is_available": True,
             })
 
         frappe.response["status"] = True
