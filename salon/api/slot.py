@@ -9,7 +9,7 @@ from frappe import _
 from frappe.utils import get_files_path
 from frappe.utils.file_manager import save_file
 from frappe.utils import nowdate, nowtime, get_first_day, getdate
-from frappe.utils import get_time, format_time
+
 def log_error(title, error):
     frappe.log_error(frappe.get_traceback(), title)
 
@@ -21,6 +21,7 @@ def flatten(lis):
         else:        
             yield item
 
+
 @frappe.whitelist(allow_guest=True)
 def get_branch_configuration(branch_id=None, employee_id=None):
     try:
@@ -31,7 +32,9 @@ def get_branch_configuration(branch_id=None, employee_id=None):
             return
 
         branch_doc = frappe.get_doc("Branches", branch_id)
-        slot_ids = [row.time_slot for row in getattr(branch_doc, "slots", []) if row.time_slot]
+
+      
+        slot_ids = [row.time_slot for row in getattr(branch_doc, "slot_time", []) if row.time_slot]
 
         if not slot_ids:
             frappe.response["status"] = True
@@ -47,33 +50,25 @@ def get_branch_configuration(branch_id=None, employee_id=None):
 
         slot_data = []
         for s in slots:
-            start_time_str = ""
-            end_time_str = ""
             start = s.get("start_time")
             duration = s.get("duration") or 0
-
+            end = None
             try:
                 if start:
-                    # Convert "22:30" or "22:30:00" to a time object
-                    t = get_time(start)
-
-                    # Manually add duration (minutes)
-                    total_minutes = t.hour * 60 + t.minute + duration
-                    end_hour = (total_minutes // 60) % 24
-                    end_minute = total_minutes % 60
-
-                    start_time_str = format_time(t, "HH:mm")
-                    end_time_str = f"{end_hour:02d}:{end_minute:02d}"
-            except Exception as e:
-                frappe.log_error(f"Error parsing slot {s.get('id')} time: {e}", "Time Slot Parse Error")
+                    import datetime
+                    start_dt = datetime.datetime.strptime(start, "%H:%M")
+                    end_dt = start_dt + datetime.timedelta(minutes=duration)
+                    end = end_dt.strftime("%H:%M")
+            except Exception:
+                end = ""
 
             slot_data.append({
                 "branch_id": branch_id,
                 "id": s.get("id"),
-                "start_time": start_time_str,
-                "end_time": end_time_str,
+                "start_time": start,
+                "end_time": end,
                 "duration": duration,
-                "is_available": True,
+                "is_available": True
             })
 
         frappe.response["status"] = True
