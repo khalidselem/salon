@@ -9,7 +9,7 @@ from frappe import _
 from frappe.utils import get_files_path
 from frappe.utils.file_manager import save_file
 from frappe.utils import nowdate, nowtime, get_first_day, getdate
-from frappe.utils import get_time, add_to_time, format_time
+from frappe.utils import get_time, format_time
 def log_error(title, error):
     frappe.log_error(frappe.get_traceback(), title)
 
@@ -30,7 +30,6 @@ def get_branch_configuration(branch_id=None, employee_id=None):
             frappe.response["data"] = []
             return
 
-        # get branch and its slots
         branch_doc = frappe.get_doc("Branches", branch_id)
         slot_ids = [row.time_slot for row in getattr(branch_doc, "slots", []) if row.time_slot]
 
@@ -48,25 +47,25 @@ def get_branch_configuration(branch_id=None, employee_id=None):
 
         slot_data = []
         for s in slots:
+            start_time_str = ""
+            end_time_str = ""
             start = s.get("start_time")
             duration = s.get("duration") or 0
 
-            start_time_str = ""
-            end_time_str = ""
-
             try:
                 if start:
-                    # ✅ Convert "22:30" or "22:30:00" → time object
-                    start_time_obj = get_time(start)
+                    # Convert "22:30" or "22:30:00" to a time object
+                    t = get_time(start)
 
-                    # ✅ Add duration (minutes)
-                    end_time_obj = add_to_time(start_time_obj, minutes=duration)
+                    # Manually add duration (minutes)
+                    total_minutes = t.hour * 60 + t.minute + duration
+                    end_hour = (total_minutes // 60) % 24
+                    end_minute = total_minutes % 60
 
-                    # ✅ Format to "HH:mm"
-                    start_time_str = format_time(start_time_obj, "HH:mm")
-                    end_time_str = format_time(end_time_obj, "HH:mm")
+                    start_time_str = format_time(t, "HH:mm")
+                    end_time_str = f"{end_hour:02d}:{end_minute:02d}"
             except Exception as e:
-                frappe.log_error(f"Failed to parse slot time {start}: {e}", "Time Slot Parse Error")
+                frappe.log_error(f"Error parsing slot {s.get('id')} time: {e}", "Time Slot Parse Error")
 
             slot_data.append({
                 "branch_id": branch_id,
