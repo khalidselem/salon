@@ -21,7 +21,7 @@
   "slot",
   "status",
   "section_break_pgqc",
-  "table_veds",
+  "table_services",
   "total",
   "booking_services_section",
   "payment_status",
@@ -89,12 +89,6 @@
    "fieldname": "booking_services_section",
    "fieldtype": "Section Break",
    "label": "Payment"
-  },
-  {
-   "fieldname": "table_veds",
-   "fieldtype": "Table",
-   "options": "Booking Items List",
-   "reqd": 1
   },
   {
    "fieldname": "total",
@@ -239,6 +233,12 @@
    "fieldname": "details_section",
    "fieldtype": "Section Break",
    "label": "Details"
+  },
+  {
+   "fieldname": "table_services",
+   "fieldtype": "Table",
+   "options": "Booking Items List",
+   "reqd": 1
   }
  ],
  "index_web_pages_for_search": 1,
@@ -246,7 +246,7 @@
  "is_submittable": 1,
  "links": [],
  "make_attachments_public": 1,
- "modified": "2025-10-22 11:58:27.100447",
+ "modified": "2025-10-22 12:29:26.045165",
  "modified_by": "Administrator",
  "module": "Salon",
  "name": "Booking",
