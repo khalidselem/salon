@@ -1,6 +1,6 @@
 {
  "charts": [],
- "content": "[{\"id\":\"0x-Ah6SeEn\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Total Booking\",\"col\":4}},{\"id\":\"JT9KZz95Dd\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Salon</span>\",\"col\":12}},{\"id\":\"B18UnB5LhZ\",\"type\":\"card\",\"data\":{\"card_name\":\"Salon Configuration\",\"col\":4}},{\"id\":\"y26WVCuTB7\",\"type\":\"card\",\"data\":{\"card_name\":\"Master\",\"col\":4}}]",
+ "content": "[{\"id\":\"0x-Ah6SeEn\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Total Booking\",\"col\":4}},{\"id\":\"JT9KZz95Dd\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Salon</span>\",\"col\":12}},{\"id\":\"B18UnB5LhZ\",\"type\":\"card\",\"data\":{\"card_name\":\"Configuration\",\"col\":4}},{\"id\":\"y26WVCuTB7\",\"type\":\"card\",\"data\":{\"card_name\":\"Master\",\"col\":4}},{\"id\":\"aJ1S6bhlZa\",\"type\":\"card\",\"data\":{\"card_name\":\"People\",\"col\":4}},{\"id\":\"BnTFUDuq6O\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b></b></span>\",\"col\":12}}]",
  "creation": "2025-10-04 14:13:22.540416",
  "custom_blocks": [],
  "docstatus": 0,
@@ -16,7 +16,7 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "Master",
-   "link_count": 2,
+   "link_count": 4,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
@@ -24,17 +24,7 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Customers",
-   "link_count": 0,
-   "link_to": "Customer",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Booking",
+   "label": "Bookings",
    "link_count": 0,
    "link_to": "Booking",
    "link_type": "DocType",
@@ -44,11 +34,22 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Salon Configuration",
-   "link_count": 8,
+   "label": "Services",
+   "link_count": 0,
+   "link_to": "Service",
    "link_type": "DocType",
    "onboard": 0,
-   "type": "Card Break"
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Categories",
+   "link_count": 0,
+   "link_to": "Categories",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
   },
   {
    "hidden": 0,
@@ -63,6 +64,15 @@
   {
    "hidden": 0,
    "is_query_report": 0,
+   "label": "Configuration",
+   "link_count": 4,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
    "label": "States",
    "link_count": 0,
    "link_to": "States",
@@ -73,39 +83,9 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Items",
-   "link_count": 0,
-   "link_to": "Item",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Time Slot",
+   "label": "Time Slots",
    "link_count": 0,
    "link_to": "Time Slot",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Drivers",
-   "link_count": 0,
-   "link_to": "Drivers",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Categories & Sub Categories",
-   "link_count": 0,
-   "link_to": "Categories",
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
@@ -123,15 +103,54 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Slider",
+   "label": "Sliders",
    "link_count": 0,
    "link_to": "Slider",
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "People",
+   "link_count": 3,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Users",
+   "link_count": 0,
+   "link_to": "User",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Staffs",
+   "link_count": 0,
+   "link_to": "Employee",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Drivers",
+   "link_count": 0,
+   "link_to": "Drivers",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
   }
  ],
- "modified": "2025-10-15 13:55:42.637803",
+ "modified": "2025-10-19 15:21:33.263555",
  "modified_by": "Administrator",
  "module": "Salon",
  "name": "Salon",

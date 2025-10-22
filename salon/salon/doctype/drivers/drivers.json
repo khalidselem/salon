@@ -6,9 +6,9 @@
  "engine": "InnoDB",
  "field_order": [
   "driver_name",
-  "users",
-  "list_of_states",
-  "stuff_list"
+  "user",
+  "staff",
+  "states"
  ],
  "fields": [
   {
@@ -19,30 +19,28 @@
    "reqd": 1
   },
   {
-   "fieldname": "users",
+   "fieldname": "staff",
    "fieldtype": "Table MultiSelect",
-   "label": "Users",
-   "options": "Assignment Rule User",
-   "reqd": 1
+   "label": "Staff",
+   "options": "Employee Select Table"
   },
   {
-   "fieldname": "list_of_states",
-   "fieldtype": "Table MultiSelect",
-   "label": "List of States",
-   "options": "list of States table",
-   "reqd": 1
+   "fieldname": "user",
+   "fieldtype": "Link",
+   "label": "User",
+   "options": "User",
+   "unique": 1
   },
   {
-   "fieldname": "stuff_list",
+   "fieldname": "states",
    "fieldtype": "Table MultiSelect",
-   "label": "Stuff List",
-   "options": "Sales Team"
+   "label": "States",
+   "options": "list of States table"
   }
  ],
- "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-10-08 01:44:29.066528",
+ "modified": "2025-10-19 14:56:26.969958",
  "modified_by": "Administrator",
  "module": "Salon",
  "name": "Drivers",
@@ -84,7 +82,6 @@
    "write": 1
   }
  ],
- "row_format": "Dynamic",
  "search_fields": "driver_name",
  "sort_field": "modified",
  "sort_order": "DESC",

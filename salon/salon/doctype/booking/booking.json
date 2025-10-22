@@ -6,64 +6,52 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "date",
-  "staff_name",
-  "state",
-  "state_name",
-  "column_break_skhn",
+  "details_section",
   "customer",
-  "status",
+  "state",
   "branch",
+  "state_name",
+  "driver",
+  "driver_name",
+  "column_break_4kwsr",
+  "location",
+  "staff",
+  "staff_name",
+  "date",
+  "slot",
+  "status",
   "section_break_pgqc",
   "table_veds",
   "total",
   "booking_services_section",
-  "driver",
-  "driver_name",
-  "slot",
-  "service_time_slot",
-  "duration",
-  "note",
-  "payment_reference",
   "payment_status",
+  "payment_reference",
   "column_break_ncij",
-  "location",
-  "driver_note",
-  "lat_lng",
-  "cash_method",
   "payment_method",
+  "cash_method",
   "section_break_ijc4",
-  "amended_from"
+  "note",
+  "column_break_jipis",
+  "driver_note",
+  "amended_from",
+  "lat_lng"
  ],
  "fields": [
   {
    "fieldname": "section_break_ijc4",
-   "fieldtype": "Section Break"
-  },
-  {
-   "fieldname": "amended_from",
-   "fieldtype": "Link",
-   "label": "Amended From",
-   "no_copy": 1,
-   "options": "Booking",
-   "print_hide": 1,
-   "read_only": 1,
-   "search_index": 1
+   "fieldtype": "Section Break",
+   "label": "Notes"
   },
   {
    "fieldname": "date",
-   "fieldtype": "Datetime",
+   "fieldtype": "Date",
    "in_filter": 1,
    "in_list_view": 1,
    "in_preview": 1,
    "in_standard_filter": 1,
    "label": "Date",
    "options": "now",
-   "read_only": 1
-  },
-  {
-   "fieldname": "column_break_skhn",
-   "fieldtype": "Column Break"
+   "reqd": 1
   },
   {
    "fieldname": "customer",
@@ -74,24 +62,18 @@
    "in_preview": 1,
    "in_standard_filter": 1,
    "label": "Customer",
-   "options": "Customer",
+   "options": "User",
    "reqd": 1
   },
   {
+   "fetch_from": "staff.employee_name",
    "fieldname": "staff_name",
-   "fieldtype": "Link",
-   "in_filter": 1,
-   "in_global_search": 1,
-   "in_list_view": 1,
-   "in_preview": 1,
-   "in_standard_filter": 1,
+   "fieldtype": "Data",
    "label": "Staff Name",
-   "options": "Sales Person",
-   "reqd": 1
+   "read_only": 1
   },
   {
    "default": "Pending",
-   "description": "Booking Status",
    "fieldname": "status",
    "fieldtype": "Select",
    "in_filter": 1,
@@ -99,19 +81,20 @@
    "in_list_view": 1,
    "in_preview": 1,
    "in_standard_filter": 1,
-   "label": "Status",
+   "label": "Booking Status",
    "options": "Pending\nCompleted\nCheck in\nCheck out\nCancel",
    "reqd": 1
   },
   {
    "fieldname": "booking_services_section",
    "fieldtype": "Section Break",
-   "label": "Booking Services "
+   "label": "Payment"
   },
   {
    "fieldname": "table_veds",
    "fieldtype": "Table",
-   "options": "Booking Items List"
+   "options": "Booking Items List",
+   "reqd": 1
   },
   {
    "fieldname": "total",
@@ -120,7 +103,6 @@
    "read_only": 1
   },
   {
-   "description": "Service Time",
    "fieldname": "slot",
    "fieldtype": "Link",
    "label": "Slot",
@@ -141,12 +123,13 @@
   {
    "fieldname": "lat_lng",
    "fieldtype": "Data",
+   "hidden": 1,
    "label": "lat lng",
    "read_only": 1
   },
   {
    "fieldname": "location",
-   "fieldtype": "Small Text",
+   "fieldtype": "Data",
    "label": "Location",
    "reqd": 1
   },
@@ -166,7 +149,8 @@
   },
   {
    "fieldname": "section_break_pgqc",
-   "fieldtype": "Section Break"
+   "fieldtype": "Section Break",
+   "label": "Services"
   },
   {
    "fieldname": "column_break_ncij",
@@ -183,28 +167,29 @@
    "fieldname": "payment_method",
    "fieldtype": "Select",
    "label": "Payment Method",
-   "options": "Cash\nMada\nShabka\nApple Pay",
+   "options": "Cash\nCard\nApple Pay",
    "reqd": 1
   },
   {
    "fieldname": "payment_status",
    "fieldtype": "Select",
    "label": "Payment Status",
-   "options": "\nPaid\nUnpaid"
+   "options": "Unpaid\nPaid"
   },
   {
    "fieldname": "cash_method",
-   "fieldtype": "Currency",
+   "fieldtype": "Data",
    "label": "Cash Method",
    "read_only": 1
   },
   {
    "fetch_from": "state.branch_name",
    "fieldname": "branch",
-   "fieldtype": "Data",
+   "fieldtype": "Link",
    "label": "Branch",
    "options": "Branches",
-   "read_only": 1
+   "read_only": 1,
+   "reqd": 1
   },
   {
    "fetch_from": "state.state_name",
@@ -221,27 +206,47 @@
    "read_only": 1
   },
   {
-   "fetch_from": "slot.service_time",
-   "fieldname": "service_time_slot",
-   "fieldtype": "Time",
-   "label": "Service Time Slot",
-   "read_only": 1
+   "fieldname": "column_break_4kwsr",
+   "fieldtype": "Column Break"
   },
   {
-   "fetch_from": "slot.duration",
-   "fieldname": "duration",
-   "fieldtype": "Int",
-   "label": "Duration",
-   "read_only": 1
+   "fieldname": "staff",
+   "fieldtype": "Link",
+   "in_filter": 1,
+   "in_global_search": 1,
+   "in_list_view": 1,
+   "in_preview": 1,
+   "in_standard_filter": 1,
+   "label": "Staff",
+   "options": "Employee",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_jipis",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Booking",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "details_section",
+   "fieldtype": "Section Break",
+   "label": "Details"
   }
  ],
- "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_calendar_and_gantt": 1,
  "is_submittable": 1,
  "links": [],
  "make_attachments_public": 1,
- "modified": "2025-10-08 01:42:02.124753",
+ "modified": "2025-10-22 11:58:27.100447",
  "modified_by": "Administrator",
  "module": "Salon",
  "name": "Booking",
@@ -286,7 +291,6 @@
    "write": 1
   }
  ],
- "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],
