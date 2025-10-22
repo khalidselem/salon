@@ -55,9 +55,7 @@ def get_branch_configuration(branch_id=None, employee_id=None):
             end = None
             try:
                 if start:
-                    # Ensure string format (convert from datetime/time if needed)
                     start_str = str(start)
-                    # Handle both "22:30" and "22:30:00"
                     time_parts = start_str.split(":")
                     if len(time_parts) >= 2:
                         hours = int(time_parts[0])
