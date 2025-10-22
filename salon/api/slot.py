@@ -135,7 +135,7 @@ def get_bookings_by_date():
             start = s.service_time
             duration = s.duration or 0
             end = ""
-            
+
             try:
                 if start:
                     start_str = str(start)
@@ -173,3 +173,42 @@ def get_bookings_by_date():
         frappe.response["status"] = False
         frappe.response["message"] = f"Server Error: {str(e)}"
         frappe.response["data"] = []
+
+@frappe.whitelist(allow_guest=False)
+def verify_slot():
+    try:
+        data = frappe.local.form_dict
+        employee_id = data.get("employee_id")
+        date = data.get("date")
+        slot_id = data.get("slot_id")
+
+        if not employee_id or not date or not slot_id:
+            frappe.response["status"] = False
+            frappe.response["message"] = "Missing required parameters"
+            frappe.response["data"] = False
+            return
+
+        exists = frappe.db.exists(
+            "Booking",
+            {
+                "staff": employee_id,
+                "date": date,
+                "slot": slot_id,
+                "status": ["!=", "Cancel"],
+            },
+        )
+
+        if exists:
+            frappe.response["status"] = True
+            frappe.response["message"] = "Slot not available"
+            frappe.response["data"] = False
+        else:
+            frappe.response["status"] = True
+            frappe.response["message"] = "Slot is available"
+            frappe.response["data"] = True
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Verify Slot Error")
+        frappe.response["status"] = False
+        frappe.response["message"] = f"Server Error: {str(e)}"
+        frappe.response["data"] = False
