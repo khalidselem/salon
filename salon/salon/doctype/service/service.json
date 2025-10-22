@@ -1,0 +1,122 @@
+{
+ "actions": [],
+ "autoname": "autoincrement",
+ "creation": "2025-10-19 14:15:46.477545",
+ "default_view": "List",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "english_name",
+  "arabic_name",
+  "english_description",
+  "arabic_description",
+  "price",
+  "disabled",
+  "category",
+  "subcategory",
+  "image",
+  "duration",
+  "staff",
+  "branches",
+  "gift"
+ ],
+ "fields": [
+  {
+   "fieldname": "english_name",
+   "fieldtype": "Data",
+   "label": "English Name"
+  },
+  {
+   "fieldname": "arabic_name",
+   "fieldtype": "Data",
+   "label": "Arabic Name"
+  },
+  {
+   "fieldname": "english_description",
+   "fieldtype": "Long Text",
+   "label": "English Description"
+  },
+  {
+   "fieldname": "arabic_description",
+   "fieldtype": "Long Text",
+   "label": "Arabic Description"
+  },
+  {
+   "fieldname": "price",
+   "fieldtype": "Float",
+   "label": "Price"
+  },
+  {
+   "default": "0",
+   "fieldname": "disabled",
+   "fieldtype": "Check",
+   "label": "Disabled"
+  },
+  {
+   "fieldname": "category",
+   "fieldtype": "Link",
+   "label": "Category",
+   "options": "Categories"
+  },
+  {
+   "fieldname": "subcategory",
+   "fieldtype": "Link",
+   "label": "SubCategory",
+   "options": "Categories"
+  },
+  {
+   "fieldname": "image",
+   "fieldtype": "Attach Image",
+   "label": "Image"
+  },
+  {
+   "fieldname": "duration",
+   "fieldtype": "Int",
+   "label": "Duration (in min)"
+  },
+  {
+   "fieldname": "staff",
+   "fieldtype": "Table MultiSelect",
+   "label": "Staff",
+   "options": "Employee Select Table"
+  },
+  {
+   "fieldname": "branches",
+   "fieldtype": "Table MultiSelect",
+   "label": "Branches",
+   "options": "Branches table"
+  },
+  {
+   "default": "0",
+   "fieldname": "gift",
+   "fieldtype": "Check",
+   "label": "Gift"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-10-22 09:28:11.644794",
+ "modified_by": "Administrator",
+ "module": "Salon",
+ "name": "Service",
+ "naming_rule": "Autoincrement",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

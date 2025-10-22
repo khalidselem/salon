@@ -13,7 +13,6 @@
   "lft",
   "rgt",
   "is_group",
-  "old_parent",
   "parent_categories",
   "image"
  ],
@@ -21,6 +20,10 @@
   {
    "fieldname": "name_english",
    "fieldtype": "Data",
+   "in_filter": 1,
+   "in_list_view": 1,
+   "in_preview": 1,
+   "in_standard_filter": 1,
    "label": "Name English"
   },
   {
@@ -57,15 +60,10 @@
    "label": "Is Group"
   },
   {
-   "fieldname": "old_parent",
-   "fieldtype": "Link",
-   "label": "Old Parent",
-   "options": "Categories"
-  },
-  {
+   "depends_on": "eval:!doc.is_group\r\n",
    "fieldname": "parent_categories",
    "fieldtype": "Link",
-   "label": "Parent Categories",
+   "label": "Parent",
    "options": "Categories"
   },
   {
@@ -77,7 +75,7 @@
  "index_web_pages_for_search": 1,
  "is_tree": 1,
  "links": [],
- "modified": "2025-10-15 13:59:03.705109",
+ "modified": "2025-10-19 14:23:48.331026",
  "modified_by": "Administrator",
  "module": "Salon",
  "name": "Categories",
