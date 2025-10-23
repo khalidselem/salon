@@ -8,7 +8,8 @@
   "driver_name",
   "user",
   "staff",
-  "states"
+  "states",
+  "device_token"
  ],
  "fields": [
   {
@@ -36,11 +37,17 @@
    "fieldtype": "Table MultiSelect",
    "label": "States",
    "options": "list of States table"
+  },
+  {
+   "fieldname": "device_token",
+   "fieldtype": "Data",
+   "label": "Device Token",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-10-19 14:56:26.969958",
+ "modified": "2025-10-23 12:19:46.819484",
  "modified_by": "Administrator",
  "module": "Salon",
  "name": "Drivers",
