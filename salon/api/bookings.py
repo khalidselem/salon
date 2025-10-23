@@ -10,6 +10,7 @@ from frappe.utils import get_files_path
 from frappe.utils.file_manager import save_file
 from frappe.utils import nowdate, nowtime, get_first_day, getdate
 
+
 def log_error(title, error):
     frappe.log_error(frappe.get_traceback(), title)
 
@@ -50,10 +51,6 @@ import frappe
 
 @frappe.whitelist(allow_guest=False)
 def get_available_driver(id=None, employee_id=None):
-    """
-    Return drivers assigned to a given state (and optionally to a specific employee)
-    by checking their multiselect child tables.
-    """
     try:
         if not id:
             frappe.response.update({
@@ -109,3 +106,87 @@ def get_available_driver(id=None, employee_id=None):
             "message": f"Server Error: {str(e)}",
             "data": []
         })
+
+@frappe.whitelist(allow_guest=False)
+def save_booking(data=None):
+    try:
+        if isinstance(data, str):
+            data = frappe.parse_json(data)
+
+        required_fields = ["customer", "state", "branch", "staff", "date", "slot", "table_services"]
+        for field in required_fields:
+            if not data.get(field):
+                frappe.throw(f"Missing required field: {field}")
+
+        # Create new booking doc
+        doc = frappe.new_doc("Booking")
+        doc.customer = data.get("customer")
+        doc.state = data.get("state")
+        doc.branch = data.get("branch")
+        doc.driver = data.get("driver")
+        doc.location = data.get("location")
+        doc.lat_lng = data.get("lat_lng")
+        doc.staff = data.get("staff")
+        doc.date = data.get("date")
+        doc.slot = data.get("slot")
+        doc.status = data.get("status", "Pending")
+        doc.payment_status = data.get("payment_status", "Unpaid")
+        doc.payment_reference = data.get("payment_reference")
+        doc.payment_method = data.get("payment_method")
+        doc.note = data.get("note")
+        doc.is_gift = data.get("is_gift", 0)
+        doc.gift_to = data.get("gift_to")
+        doc.gift_from = data.get("gift_from")
+        doc.gift_message = data.get("gift_message")
+        doc.gift_number = data.get("gift_number")
+        doc.gift_location = data.get("gift_location")
+
+        # Gift card handling (base64 → file)
+        gift_card_base64 = data.get("gift_card")
+        if gift_card_base64:
+            filename = f"gift_card_{frappe.generate_hash('', 8)}.png"
+            filedata = base64.b64decode(gift_card_base64)
+            file_doc = frappe.get_doc({
+                "doctype": "File",
+                "file_name": filename,
+                "attached_to_doctype": "Booking",
+                "attached_to_name": doc.name or "New Booking",
+                "is_private": 0,
+                "content": filedata
+            })
+            file_doc.save(ignore_permissions=True)
+            doc.gift_card = file_doc.file_url
+
+        # Handle Booking Items List
+        total_amount = 0
+        for s in data.get("table_services", []):
+            qty = float(s.get("qty", 1))
+            price = float(s.get("price", 0))
+            total_price = qty * price
+            total_amount += total_price
+
+            doc.append("table_services", {
+                "service": s.get("service"),
+                "qty": qty,
+                "price": price,
+                "total_price": total_price
+            })
+
+        doc.total = total_amount
+
+        doc.insert(ignore_permissions=True)
+        frappe.db.commit()
+
+        return {
+            "status": True,
+            "message": "Booking saved successfully",
+            "data": {"booking_id": doc.name}
+        }
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "save_booking")
+        return {
+            "status": False,
+            "message": f"Server Error: {str(e)}",
+            "data": []
+        }
