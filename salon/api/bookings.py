@@ -118,8 +118,8 @@ def save_booking(data=None):
             if not data.get(field):
                 frappe.throw(f"Missing required field: {field}")
 
-        # Create new booking doc
         doc = frappe.new_doc("Booking")
+        
         doc.customer = data.get("customer")
         doc.state = data.get("state")
         doc.branch = data.get("branch")
@@ -141,7 +141,6 @@ def save_booking(data=None):
         doc.gift_number = data.get("gift_number")
         doc.gift_location = data.get("gift_location")
 
-        # Gift card handling (base64 → file)
         gift_card_base64 = data.get("gift_card")
         if gift_card_base64:
             filename = f"gift_card_{frappe.generate_hash('', 8)}.png"
@@ -157,16 +156,28 @@ def save_booking(data=None):
             file_doc.save(ignore_permissions=True)
             doc.gift_card = file_doc.file_url
 
-        # Handle Booking Items List
         total_amount = 0
-        for s in data.get("table_services", []):
-            qty = float(s.get("qty", 1))
-            price = float(s.get("price", 0))
+        services = data.get("table_services") or []
+
+        if not isinstance(services, list):
+            frappe.throw("Invalid data: table_services must be a list")
+
+        for s in services:
+            if not s:
+                continue
+
+            qty = float(s.get("qty", 1) or 1)
+            price = float(s.get("price", 0) or 0)
+            service_id = s.get("service")
+
+            if not service_id:
+                continue 
+
             total_price = qty * price
             total_amount += total_price
 
             doc.append("table_services", {
-                "service": s.get("service"),
+                "service": service_id,
                 "qty": qty,
                 "price": price,
                 "total_price": total_price
