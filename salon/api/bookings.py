@@ -49,11 +49,9 @@ def get_states(id=None):
 @frappe.whitelist(allow_guest=False)
 def get_available_driver(id=None, employee_id=None):
     """
-    Return drivers who:
-      - have `state` == id in child table "list of States table"
-      - AND have `employee` == employee_id in child table "Employee Select Table"
-    Parameters:
-      id (state id) and employee_id (Employee docname)
+    Returns drivers who:
+    - Have the given state_id in their 'states' multiselect table
+    - AND have the given employee_id in their 'staff' multiselect table
     """
     try:
         if not id:
@@ -62,11 +60,10 @@ def get_available_driver(id=None, employee_id=None):
             frappe.response["data"] = []
             return
 
-        # Normalize to string for comparisons (child table values are stored as strings/docnames)
         state_id = str(id)
         emp_id = str(employee_id) if employee_id else None
 
-        # Fetch drivers basic info
+        # Fetch all drivers
         drivers = frappe.get_all(
             "Drivers",
             fields=["name", "driver_name", "user", "device_token"]
@@ -75,43 +72,31 @@ def get_available_driver(id=None, employee_id=None):
         available_drivers = []
 
         for d in drivers:
-            driver_name = d.get("name")
+            driver_doc = frappe.get_doc("Drivers", d.name)
 
-            # Check state child table for this driver
-            has_state = frappe.db.exists(
-                "list of States table",
-                {"parent": driver_name, "state": state_id}
-            )
+            # --- Check for State ---
+            has_state = any(str(s.state) == state_id for s in driver_doc.states)
 
-            if not has_state:
-                # skip driver if they don't serve the state
-                continue
-
-            # If employee_id was provided, check that driver has that employee in their staff
+            # --- Check for Employee (if provided) ---
+            has_employee = True
             if emp_id:
-                has_employee = frappe.db.exists(
-                    "Employee Select Table",
-                    {"parent": driver_name, "employee": emp_id}
-                )
-                if not has_employee:
-                    continue  # driver doesn't deliver that employee -> skip
+                has_employee = any(str(s.employee) == emp_id for s in driver_doc.staff)
 
-            # Passed both checks -> include driver
-            available_drivers.append({
-                "name": driver_name,
-                "driver_name": d.get("driver_name"),
-                "user": d.get("user"),
-                "device_token": d.get("device_token"),
-            })
+            # Include driver only if both true
+            if has_state and has_employee:
+                available_drivers.append({
+                    "driver_id": d.name,
+                    "driver_name": d.driver_name,
+                    "user": d.user,
+                    "device_token": d.device_token,
+                })
 
         frappe.response["status"] = True
         frappe.response["message"] = "Drivers fetched successfully"
         frappe.response["data"] = available_drivers
-        return
 
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), "Get Available Driver Error")
         frappe.response["status"] = False
         frappe.response["message"] = f"Server Error: {str(e)}"
         frappe.response["data"] = []
-        return
