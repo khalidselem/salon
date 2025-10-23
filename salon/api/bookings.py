@@ -107,72 +107,80 @@ def get_available_driver(id=None, employee_id=None):
             "data": []
         })
 
-@frappe.whitelist(allow_guest=False)
-def save_booking(data=None):
+@frappe.whitelist(allow_guest=True)
+def save_booking():
     try:
-        if isinstance(data, str):
-            data = frappe.parse_json(data)
+        # Parse input safely
+        raw_data = frappe.request.data
 
-        required_fields = ["customer", "state", "branch", "staff", "date", "slot", "table_services"]
-        for field in required_fields:
-            if not data.get(field):
-                frappe.throw(f"Missing required field: {field}")
-
-        doc = frappe.new_doc("Booking")
-        
-        doc.customer = data.get("customer")
-        doc.state = data.get("state")
-        doc.branch = data.get("branch")
-        doc.driver = data.get("driver")
-        doc.location = data.get("location")
-        doc.lat_lng = data.get("lat_lng")
-        doc.staff = data.get("staff")
-        doc.date = data.get("date")
-        doc.slot = data.get("slot")
-        doc.status = data.get("status", "Pending")
-        doc.payment_status = data.get("payment_status", "Unpaid")
-        doc.payment_reference = data.get("payment_reference")
-        doc.payment_method = data.get("payment_method")
-        doc.note = data.get("note")
-        doc.is_gift = data.get("is_gift", 0)
-        doc.gift_to = data.get("gift_to")
-        doc.gift_from = data.get("gift_from")
-        doc.gift_message = data.get("gift_message")
-        doc.gift_number = data.get("gift_number")
-        doc.gift_location = data.get("gift_location")
-
-        gift_card_base64 = data.get("gift_card")
-        if gift_card_base64:
-            filename = f"gift_card_{frappe.generate_hash('', 8)}.png"
-            filedata = base64.b64decode(gift_card_base64)
-            file_doc = frappe.get_doc({
-                "doctype": "File",
-                "file_name": filename,
-                "attached_to_doctype": "Booking",
-                "attached_to_name": doc.name or "New Booking",
-                "is_private": 0,
-                "content": filedata
+        if not raw_data:
+            frappe.response.update({
+                "status": False,
+                "message": "No request data found",
+                "data": []
             })
-            file_doc.save(ignore_permissions=True)
-            doc.gift_card = file_doc.file_url
+            return
 
-        total_amount = 0
+        try:
+            data = frappe.parse_json(raw_data)
+        except Exception:
+            data = frappe.form_dict
+
+        if not data or not isinstance(data, dict):
+            frappe.response.update({
+                "status": False,
+                "message": "Invalid or empty request body",
+                "data": []
+            })
+            return
+
+        # Create new booking doc
+        doc = frappe.new_doc("Booking")
+
+        safe_fields = [
+            "customer", "state", "branch", "driver", "location",
+            "lat_lng", "staff", "date", "slot", "status",
+            "payment_status", "payment_reference", "payment_method",
+            "note", "is_gift", "gift_from", "gift_to",
+            "gift_message", "gift_location", "gift_number"
+        ]
+
+        for field in safe_fields:
+            if field in data:
+                doc.set(field, data[field])
+
+        # Handle gift card image if present
+        gift_card = data.get("gift_card")
+        if gift_card:
+            try:
+                img_data = base64.b64decode(gift_card)
+                file_name = f"{frappe.generate_hash()}.png"
+                file_path = frappe.utils.get_site_path("public", "files", file_name)
+                with open(file_path, "wb") as f:
+                    f.write(img_data)
+                doc.gift_card = f"/files/{file_name}"
+            except Exception as e:
+                frappe.log_error(f"Gift card decode failed: {str(e)}")
+
+        # Handle Booking Items safely
+        total_amount = 0.0
         services = data.get("table_services") or []
 
         if not isinstance(services, list):
-            frappe.throw("Invalid data: table_services must be a list")
+            frappe.response.update({
+                "status": False,
+                "message": "Invalid data: table_services must be a list",
+                "data": []
+            })
+            return
 
         for s in services:
-            if not s:
+            if not isinstance(s, dict):
                 continue
 
-            qty = float(s.get("qty", 1) or 1)
-            price = float(s.get("price", 0) or 0)
             service_id = s.get("service")
-
-            if not service_id:
-                continue 
-
+            qty = float(s.get("qty") or 1)
+            price = float(s.get("price") or 0)
             total_price = qty * price
             total_amount += total_price
 
@@ -184,20 +192,20 @@ def save_booking(data=None):
             })
 
         doc.total = total_amount
-
         doc.insert(ignore_permissions=True)
         frappe.db.commit()
 
-        return {
+        frappe.response.update({
             "status": True,
             "message": "Booking saved successfully",
-            "data": {"booking_id": doc.name}
-        }
+            "data": {"name": doc.name}
+        })
 
     except Exception as e:
-        frappe.log_error(frappe.get_traceback(), "save_booking")
-        return {
+        frappe.db.rollback()
+        frappe.log_error(frappe.get_traceback(), "save_booking_error")
+        frappe.response.update({
             "status": False,
             "message": f"Server Error: {str(e)}",
             "data": []
-        }
+        })
