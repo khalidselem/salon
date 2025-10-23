@@ -76,13 +76,11 @@ def get_available_driver(id=None, employee_id=None):
         for d in drivers:
             driver_doc = frappe.get_doc("Drivers", d.name)
 
-            # --- Check state ---
             has_state = any(
                 state_id in [str(v) for v in row.as_dict().values()]
                 for row in driver_doc.get("states")
             )
 
-            # --- Check employee if provided ---
             has_employee = True
             if emp_id:
                 has_employee = any(
