@@ -46,24 +46,26 @@ def get_states(id=None):
         frappe.response["message"] = f"Server Error: {str(e)}"
         frappe.response["data"] = []
 
+import frappe
+
 @frappe.whitelist(allow_guest=False)
 def get_available_driver(id=None, employee_id=None):
     """
-    Returns drivers who:
-    - Have the given state_id in their 'states' multiselect table
-    - AND have the given employee_id in their 'staff' multiselect table
+    Return drivers assigned to a given state (and optionally to a specific employee)
+    by checking their multiselect child tables.
     """
     try:
         if not id:
-            frappe.response["status"] = False
-            frappe.response["message"] = "Missing required parameter: id (state id)"
-            frappe.response["data"] = []
+            frappe.response.update({
+                "status": False,
+                "message": "Missing required parameter: id (state id)",
+                "data": []
+            })
             return
 
         state_id = str(id)
         emp_id = str(employee_id) if employee_id else None
 
-        # Fetch all drivers
         drivers = frappe.get_all(
             "Drivers",
             fields=["name", "driver_name", "user", "device_token"]
@@ -74,15 +76,20 @@ def get_available_driver(id=None, employee_id=None):
         for d in drivers:
             driver_doc = frappe.get_doc("Drivers", d.name)
 
-            # --- Check for State ---
-            has_state = any(str(s.state) == state_id for s in driver_doc.states)
+            # --- Check state ---
+            has_state = any(
+                state_id in [str(v) for v in row.as_dict().values()]
+                for row in driver_doc.get("states")
+            )
 
-            # --- Check for Employee (if provided) ---
+            # --- Check employee if provided ---
             has_employee = True
             if emp_id:
-                has_employee = any(str(s.employee) == emp_id for s in driver_doc.staff)
+                has_employee = any(
+                    emp_id in [str(v) for v in row.as_dict().values()]
+                    for row in driver_doc.get("staff")
+                )
 
-            # Include driver only if both true
             if has_state and has_employee:
                 available_drivers.append({
                     "driver_id": d.name,
@@ -91,12 +98,16 @@ def get_available_driver(id=None, employee_id=None):
                     "device_token": d.device_token,
                 })
 
-        frappe.response["status"] = True
-        frappe.response["message"] = "Drivers fetched successfully"
-        frappe.response["data"] = available_drivers
+        frappe.response.update({
+            "status": True,
+            "message": "Drivers fetched successfully",
+            "data": available_drivers
+        })
 
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), "Get Available Driver Error")
-        frappe.response["status"] = False
-        frappe.response["message"] = f"Server Error: {str(e)}"
-        frappe.response["data"] = []
+        frappe.response.update({
+            "status": False,
+            "message": f"Server Error: {str(e)}",
+            "data": []
+        })
