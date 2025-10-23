@@ -29,7 +29,7 @@ def get_states(id=None):
             frappe.response["message"] = "Missing required parameter: id (branch_id)"
             frappe.response["data"] = []
             return
-            
+
         states = frappe.get_all(
             "States",
             filters={"branch": id},
@@ -46,7 +46,7 @@ def get_states(id=None):
         frappe.response["message"] = f"Server Error: {str(e)}"
         frappe.response["data"] = []
 
-@frappe.whitelist(allow_guest=False)
+@frappe.whitelist()
 def get_available_driver(id=None):
     try:
         if not id:
@@ -55,21 +55,22 @@ def get_available_driver(id=None):
             frappe.response["data"] = []
             return
 
+        # Only fetch valid fields from Drivers
         drivers = frappe.get_all(
             "Drivers",
-            fields=["name", "driver_name", "user", "device_token", "states"]
+            fields=["name", "driver_name", "user", "device_token"]
         )
 
         available_drivers = []
 
         for driver in drivers:
-            state_records = frappe.get_all(
+            # Check if driver has this state in their linked table
+            has_state = frappe.db.exists(
                 "list of States table",
-                filters={"parent": driver.name},
-                fields=["state"]
+                {"parent": driver.name, "state": id}
             )
 
-            if any(str(r.get("state")) == str(id) for r in state_records):
+            if has_state:
                 available_drivers.append({
                     "driver_id": driver.name,
                     "driver_name": driver.driver_name,
