@@ -10,7 +10,6 @@ from frappe.utils import get_files_path
 from frappe.utils.file_manager import save_file
 from frappe.utils import nowdate, nowtime, get_first_day, getdate
 
-
 def log_error(title, error):
     frappe.log_error(frappe.get_traceback(), title)
 
@@ -110,22 +109,20 @@ def get_available_driver(id=None, employee_id=None):
 @frappe.whitelist(allow_guest=True)
 def save_booking():
     try:
-        # Parse input safely
         raw_data = frappe.request.data
 
-        if not raw_data:
-            frappe.response.update({
-                "status": False,
-                "message": "No request data found",
-                "data": []
-            })
-            return
-
-        try:
-            data = frappe.parse_json(raw_data)
-        except Exception:
+        # ✅ Decode JSON bytes if sent from Flutter
+        if raw_data:
+            try:
+                if isinstance(raw_data, bytes):
+                    raw_data = raw_data.decode("utf-8")
+                data = json.loads(raw_data)
+            except Exception:
+                data = frappe.form_dict
+        else:
             data = frappe.form_dict
 
+        # ✅ Check if we got a valid dictionary
         if not data or not isinstance(data, dict):
             frappe.response.update({
                 "status": False,
@@ -134,7 +131,7 @@ def save_booking():
             })
             return
 
-        # Create new booking doc
+        # ✅ Create new booking document
         doc = frappe.new_doc("Booking")
 
         safe_fields = [
@@ -149,7 +146,7 @@ def save_booking():
             if field in data:
                 doc.set(field, data[field])
 
-        # Handle gift card image if present
+        # ✅ Handle gift card image
         gift_card = data.get("gift_card")
         if gift_card:
             try:
@@ -162,7 +159,7 @@ def save_booking():
             except Exception as e:
                 frappe.log_error(f"Gift card decode failed: {str(e)}")
 
-        # Handle Booking Items safely
+        # ✅ Handle Booking Items
         total_amount = 0.0
         services = data.get("table_services") or []
 
