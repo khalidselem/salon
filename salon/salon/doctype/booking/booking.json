@@ -34,7 +34,16 @@
   "column_break_jipis",
   "driver_note",
   "amended_from",
-  "lat_lng"
+  "lat_lng",
+  "gift_tab",
+  "is_gift",
+  "gift_to",
+  "gift_from",
+  "gift_location",
+  "column_break_3sjtf",
+  "gift_message",
+  "gift_number",
+  "gift_card"
  ],
  "fields": [
   {
@@ -177,7 +186,7 @@
    "read_only": 1
   },
   {
-   "fetch_from": "state.branch_name",
+   "fetch_from": "state.branch",
    "fieldname": "branch",
    "fieldtype": "Link",
    "label": "Branch",
@@ -239,6 +248,52 @@
    "fieldtype": "Table",
    "options": "Booking Items List",
    "reqd": 1
+  },
+  {
+   "fieldname": "gift_tab",
+   "fieldtype": "Tab Break",
+   "label": "Gift"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_gift",
+   "fieldtype": "Check",
+   "label": "Is Gift"
+  },
+  {
+   "fieldname": "gift_to",
+   "fieldtype": "Data",
+   "label": "Gift To"
+  },
+  {
+   "fieldname": "gift_from",
+   "fieldtype": "Data",
+   "label": "Gift From"
+  },
+  {
+   "fieldname": "column_break_3sjtf",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "gift_message",
+   "fieldtype": "Data",
+   "label": "Gift Message"
+  },
+  {
+   "fieldname": "gift_number",
+   "fieldtype": "Data",
+   "label": "Gift Number"
+  },
+  {
+   "fieldname": "gift_card",
+   "fieldtype": "Attach Image",
+   "label": "Gift Card"
+  },
+  {
+   "fieldname": "gift_location",
+   "fieldtype": "Data",
+   "label": "Gift Location",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
@@ -246,7 +301,7 @@
  "is_submittable": 1,
  "links": [],
  "make_attachments_public": 1,
- "modified": "2025-10-22 12:29:26.045165",
+ "modified": "2025-10-23 11:20:00.807976",
  "modified_by": "Administrator",
  "module": "Salon",
  "name": "Booking",
