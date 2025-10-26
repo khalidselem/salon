@@ -240,7 +240,6 @@ def booking_list(email=None, search=None):
                 "payment_method",
                 "cash_method",
                 "branch",
-                "branch_name",
                 "note",
                 "total",
                 "is_gift",
@@ -258,7 +257,7 @@ def booking_list(email=None, search=None):
             result.append({
                 "id": b.id or "",
                 "branch": b.branch or "",
-                "branch_name": b.branch_name or "",
+                "branch_name": frappe.get_value("Branches", b.branch, "name1") or "",
                 "staff_name": b.staff_name or "",
                 "staff": b.staff or "",
                 "note": b.note or "",
