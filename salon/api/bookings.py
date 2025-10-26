@@ -322,10 +322,10 @@ def get_booking_services(booking_id):
                 "duration_min": service_doc.duration or 0,
                 "default_price": s.price or service_doc.price or 0,
                 "category_id": service_doc.category if hasattr(service_doc, 'category') else None,
-                "sub_category_id": service_doc.subcategory if hasattr(service_doc, 'sub_category') else None,
+                "sub_category_id": service_doc.subcategory if hasattr(service_doc, 'subcategory') else None,
                 "status": service_doc.status if hasattr(service_doc, 'status') else "Active",
                 "service_image": site_url + service_doc.image if service_doc.image else None,
-                "is_gift_category": service_doc.gift if hasattr(service_doc, 'is_gift_category') else 0,
+                "is_gift_category": service_doc.gift if hasattr(service_doc, 'gift') else 0,
                 "service_amount": s.qty or 1,
             })
 
