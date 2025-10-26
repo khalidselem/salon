@@ -206,3 +206,117 @@ def save_booking():
             "message": f"Server Error: {str(e)}",
             "data": []
         })
+
+@frappe.whitelist()
+def booking_list(email=None, search=None):
+    try:
+        if not email:
+            return {
+                "status": False,
+                "message": "Email is required",
+                "data": []
+            }
+
+        filters = {"customer": email}
+        if search:
+            filters["name"] = ["like", f"%{search}%"]
+
+        bookings = frappe.get_all(
+            "Booking",
+            filters=filters,
+            fields=[
+                "name as id",
+                "customer",
+                "state",
+                "state_name",
+                "location",
+                "staff_name",
+                "staff",
+                "date",
+                "slot",
+                "status",
+                "driver_note",
+                "payment_status",
+                "payment_reference",
+                "payment_method",
+                "cash_method",
+                "branch",
+                "note",
+                "total",
+                "is_gift",
+                "gift_to",
+                "gift_from",
+                "gift_location",
+                "gift_message",
+                "gift_number",
+            ],
+            order_by="creation desc",
+        )
+
+        result = []
+        for b in bookings:
+            result.append({
+                "id": b.id or "",
+                "customer": b.customer or "",
+                "state": b.state or "",
+                "state_name": b.state_name or "",
+                "location": b.location or "",
+                "staff_name": b.staff_name or "",
+                "staff": b.staff or "",
+                "date": str(b.date) if b.date else "",
+                "slot": b.slot or "",
+                "status": b.status or "",
+                "driver_note": b.driver_note or "",
+                "payment_status": b.payment_status or "",
+                "payment_reference": b.payment_reference or "",
+                "payment_method": b.payment_method or "",
+                "cash_method": b.cash_method or "",
+                "branch": b.branch or "",
+                "note": b.note or "",
+                "total": b.total or 0,
+                "is_gift": b.is_gift or 0,
+                "gift_to": b.gift_to or "",
+                "gift_from": b.gift_from or "",
+                "gift_location": b.gift_location or "",
+                "gift_message": b.gift_message or "",
+                "gift_number": b.gift_number or "",
+                "table_services": get_booking_services(b.id),
+            })
+
+        return {
+            "status": True,
+            "message": "Booking list fetched successfully",
+            "data": result,
+        }
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "booking_list API Error")
+        return {
+            "status": False,
+            "message": f"Server Error: {str(e)}",
+            "data": []
+        }
+
+
+def get_booking_services(booking_id):
+    """Return services in booking with default empty structure"""
+    try:
+        services = frappe.get_all(
+            "Booking Items List",
+            filters={"parent": booking_id},
+            fields=["service", "qty", "price"]
+        )
+
+        result = []
+        for s in services:
+            service_name = frappe.db.get_value("Service", s.service, "english_name") or ""
+            result.append({
+                "service_name": service_name,
+                "qty": s.qty or 0,
+                "price": s.price or 0,
+            })
+
+        return result
+    except Exception:
+        return []
+
