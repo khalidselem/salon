@@ -240,6 +240,7 @@ def booking_list(email=None, search=None):
                 "payment_method",
                 "cash_method",
                 "branch",
+                "branch_name",
                 "note",
                 "total",
                 "is_gift",
@@ -256,23 +257,25 @@ def booking_list(email=None, search=None):
         for b in bookings:
             result.append({
                 "id": b.id or "",
-                "customer": b.customer or "",
+                "branch": b.branch or "",
+                "branch_name": b.branch_name or "",
+                "staff_name": b.staff_name or "",
+                "staff": b.staff or "",
+                "note": b.note or "",
+                "date": str(b.date) if b.date else "",
+                "slot": b.slot or "",
+                "slot_time": frappe.get_value("Time Slot", b.slot, "service_time") or "",
                 "state": b.state or "",
                 "state_name": b.state_name or "",
                 "location": b.location or "",
-                "staff_name": b.staff_name or "",
-                "staff": b.staff or "",
-                "date": str(b.date) if b.date else "",
-                "slot": b.slot or "",
                 "status": b.status or "",
                 "driver_note": b.driver_note or "",
+                "customer": b.customer or "",
+                "total": b.total or 0,
                 "payment_status": b.payment_status or "",
                 "payment_reference": b.payment_reference or "",
                 "payment_method": b.payment_method or "",
                 "cash_method": b.cash_method or "",
-                "branch": b.branch or "",
-                "note": b.note or "",
-                "total": b.total or 0,
                 "is_gift": b.is_gift or 0,
                 "gift_to": b.gift_to or "",
                 "gift_from": b.gift_from or "",
@@ -280,6 +283,7 @@ def booking_list(email=None, search=None):
                 "gift_message": b.gift_message or "",
                 "gift_number": b.gift_number or "",
                 "table_services": get_booking_services(b.id),
+                "phone" : frappe.db.get_value("User", b.customer, "mobile_no") or "",
             })
 
         # ✅ Flat response (no wrapping under "message")
@@ -297,6 +301,8 @@ def booking_list(email=None, search=None):
 
 def get_booking_services(booking_id):
     try:
+        site_url = frappe.utils.get_url()
+
         services = frappe.get_all(
             "Booking Items List",
             filters={"parent": booking_id},
@@ -305,13 +311,26 @@ def get_booking_services(booking_id):
 
         result = []
         for s in services:
-            service_name = frappe.db.get_value("Service", s.service, "english_name") or ""
+            # Get service doc details
+            service_doc = frappe.get_doc("Service", s.service)
+
             result.append({
-                "service_name": service_name,
-                "qty": s.qty or 0,
-                "price": s.price or 0,
+                "id": service_doc.name,
+                "name": service_doc.english_name or "",
+                "name_ar": service_doc.arabic_name or "",
+                "description_en": service_doc.english_description or "",
+                "description_ar": service_doc.arabic_description or "",
+                "duration_min": service_doc.duration or 0,
+                "default_price": s.price or service_doc.price or 0,
+                "category_id": service_doc.category if hasattr(service_doc, 'category') else None,
+                "sub_category_id": service_doc.subcategory if hasattr(service_doc, 'sub_category') else None,
+                "status": service_doc.status if hasattr(service_doc, 'status') else "Active",
+                "service_image": site_url + service_doc.image if service_doc.image else None,
+                "is_gift_category": service_doc.gift if hasattr(service_doc, 'is_gift_category') else 0,
+                "service_amount": s.qty or 1,
             })
 
         return result
-    except Exception:
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "get_booking_services Error")
         return []
