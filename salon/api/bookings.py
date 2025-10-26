@@ -46,7 +46,6 @@ def get_states(id=None):
         frappe.response["message"] = f"Server Error: {str(e)}"
         frappe.response["data"] = []
 
-import frappe
 
 @frappe.whitelist(allow_guest=False)
 def get_available_driver(id=None, employee_id=None):
@@ -111,7 +110,6 @@ def save_booking():
     try:
         raw_data = frappe.request.data
 
-        # ✅ Decode JSON bytes if sent from Flutter
         if raw_data:
             try:
                 if isinstance(raw_data, bytes):
@@ -122,7 +120,6 @@ def save_booking():
         else:
             data = frappe.form_dict
 
-        # ✅ Check if we got a valid dictionary
         if not data or not isinstance(data, dict):
             frappe.response.update({
                 "status": False,
@@ -131,7 +128,6 @@ def save_booking():
             })
             return
 
-        # ✅ Create new booking document
         doc = frappe.new_doc("Booking")
 
         safe_fields = [
@@ -146,7 +142,6 @@ def save_booking():
             if field in data:
                 doc.set(field, data[field])
 
-        # ✅ Handle gift card image
         gift_card = data.get("gift_card")
         if gift_card:
             try:
@@ -159,7 +154,6 @@ def save_booking():
             except Exception as e:
                 frappe.log_error(f"Gift card decode failed: {str(e)}")
 
-        # ✅ Handle Booking Items
         total_amount = 0.0
         services = data.get("table_services") or []
 
@@ -285,7 +279,6 @@ def booking_list(email=None, search=None):
                 "phone" : frappe.db.get_value("User", b.customer, "mobile_no") or "",
             })
 
-        # ✅ Flat response (no wrapping under "message")
         frappe.response["status"] = True
         frappe.response["message"] = "Booking list fetched successfully"
         frappe.response["data"] = result
@@ -310,7 +303,6 @@ def get_booking_services(booking_id):
 
         result = []
         for s in services:
-            # Get service doc details
             service_doc = frappe.get_doc("Service", s.service)
 
             result.append({
@@ -333,3 +325,92 @@ def get_booking_services(booking_id):
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), "get_booking_services Error")
         return []
+
+@frappe.whitelist(allow_guest=True)
+def booking_detail(id=None):
+    try:
+        if not id:
+            frappe.response["status"] = False
+            frappe.response["message"] = "Booking ID is required"
+            frappe.response["data"] = {}
+            return
+
+        booking = frappe.db.get_value(
+            "Booking",
+            id,
+            [
+                "name as id",
+                "customer",
+                "state",
+                "state_name",
+                "location",
+                "staff_name",
+                "staff",
+                "date",
+                "slot",
+                "status",
+                "driver_note",
+                "payment_status",
+                "payment_reference",
+                "payment_method",
+                "cash_method",
+                "branch",
+                "note",
+                "total",
+                "is_gift",
+                "gift_to",
+                "gift_from",
+                "gift_location",
+                "gift_message",
+                "gift_number",
+            ],
+            as_dict=True,
+        )
+
+        if not booking:
+            frappe.response["status"] = False
+            frappe.response["message"] = "Booking not found"
+            frappe.response["data"] = {}
+            return
+
+        data = {
+            "id": booking.id or "",
+            "branch": booking.branch or "",
+            "branch_name": frappe.get_value("Branches", booking.branch, "name1") or "",
+            "staff_name": booking.staff_name or "",
+            "staff": booking.staff or "",
+            "note": booking.note or "",
+            "date": str(booking.date) if booking.date else "",
+            "slot": booking.slot or "",
+            "slot_time": frappe.get_value("Time Slot", booking.slot, "service_time") or "",
+            "state": booking.state or "",
+            "state_name": booking.state_name or "",
+            "location": booking.location or "",
+            "status": booking.status or "",
+            "driver_note": booking.driver_note or "",
+            "customer": booking.customer or "",
+            "total": booking.total or 0,
+            "payment_status": booking.payment_status or "",
+            "payment_reference": booking.payment_reference or "",
+            "payment_method": booking.payment_method or "",
+            "cash_method": booking.cash_method or "",
+            "is_gift": booking.is_gift or 0,
+            "gift_to": booking.gift_to or "",
+            "gift_from": booking.gift_from or "",
+            "gift_location": booking.gift_location or "",
+            "gift_message": booking.gift_message or "",
+            "gift_number": booking.gift_number or "",
+            "table_services": get_booking_services(booking.id),
+            "phone": frappe.db.get_value("User", booking.customer, "mobile_no") or "",
+        }
+
+        frappe.response["status"] = True
+        frappe.response["message"] = "Booking detail fetched successfully"
+        frappe.response["data"] = data
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "booking_detail API Error")
+
+        frappe.response["status"] = False
+        frappe.response["message"] = f"Server Error: {str(e)}"
+        frappe.response["data"] = {}
