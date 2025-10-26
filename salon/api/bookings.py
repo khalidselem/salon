@@ -414,3 +414,39 @@ def booking_detail(id=None):
         frappe.response["status"] = False
         frappe.response["message"] = f"Server Error: {str(e)}"
         frappe.response["data"] = {}
+
+
+@frappe.whitelist(allow_guest=True)
+def cancel_booking(id=None):
+    try:
+        if not id:
+            frappe.response["status"] = False
+            frappe.response["message"] = "Booking ID is required"
+            frappe.response["data"] = {}
+            return
+
+        booking = frappe.get_doc("Booking", id)
+
+        if not booking:
+            frappe.response["status"] = False
+            frappe.response["message"] = "Booking not found"
+            frappe.response["data"] = {}
+            return
+
+        booking.status = "Cancel"
+        booking.save(ignore_permissions=True)
+        frappe.db.commit()
+
+        frappe.response["status"] = True
+        frappe.response["message"] = "Booking cancelled successfully"
+        frappe.response["data"] = {
+            "id": booking.name,
+            "status": booking.status,
+        }
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "cancel_booking API Error")
+
+        frappe.response["status"] = False
+        frappe.response["message"] = f"Server Error: {str(e)}"
+        frappe.response["data"] = {}
