@@ -207,15 +207,14 @@ def save_booking():
             "data": []
         })
 
-@frappe.whitelist()
+@frappe.whitelist(allow_guest=True)
 def booking_list(email=None, search=None):
     try:
         if not email:
-            return {
-                "status": False,
-                "message": "Email is required",
-                "data": []
-            }
+            frappe.response["status"] = False
+            frappe.response["message"] = "Email is required"
+            frappe.response["data"] = []
+            return
 
         filters = {"customer": email}
         if search:
@@ -283,23 +282,20 @@ def booking_list(email=None, search=None):
                 "table_services": get_booking_services(b.id),
             })
 
-        return {
-            "status": True,
-            "message": "Booking list fetched successfully",
-            "data": result,
-        }
+        # ✅ Flat response (no wrapping under "message")
+        frappe.response["status"] = True
+        frappe.response["message"] = "Booking list fetched successfully"
+        frappe.response["data"] = result
 
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), "booking_list API Error")
-        return {
-            "status": False,
-            "message": f"Server Error: {str(e)}",
-            "data": []
-        }
+
+        frappe.response["status"] = False
+        frappe.response["message"] = f"Server Error: {str(e)}"
+        frappe.response["data"] = []
 
 
 def get_booking_services(booking_id):
-    """Return services in booking with default empty structure"""
     try:
         services = frappe.get_all(
             "Booking Items List",
@@ -319,4 +315,3 @@ def get_booking_services(booking_id):
         return result
     except Exception:
         return []
-
