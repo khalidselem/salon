@@ -76,3 +76,53 @@ def driver_login(email=None, password=None, device_token=None):
         frappe.response["status"] = False
         frappe.response["message"] = f"Server Error: {str(e)}"
         frappe.response["data"] = {}
+
+
+@frappe.whitelist(allow_guest=True)
+def get_driver(id=None):
+    try:
+        if not id:
+            frappe.response["status"] = False
+            frappe.response["message"] = "Driver ID is required"
+            frappe.response["data"] = {}
+            return
+
+        site_url = frappe.utils.get_url()
+        
+        driver = frappe.get_doc("Drivers", id)
+
+        if not driver.user:
+            frappe.response["status"] = False
+            frappe.response["message"] = "This driver is not linked to any user"
+            frappe.response["data"] = {}
+            return
+
+        user = frappe.get_doc("User", driver.user)
+
+
+        data = {
+            "id": driver.name,
+            "first_name": user.first_name or "",
+            "last_name": user.last_name or "",
+            "mobile": user.mobile_no or "",
+            "email": user.name or "",
+            "device_token": driver.device_token or "",
+            "gender": user.gender or "",
+            "profile_image": f"{site_url}{user.user_image}" or "",
+            "login_type": "driver",
+        }
+
+        frappe.response["status"] = True
+        frappe.response["message"] = "Driver details fetched successfully"
+        frappe.response["data"] = data
+
+    except frappe.DoesNotExistError:
+        frappe.response["status"] = False
+        frappe.response["message"] = "Driver not found"
+        frappe.response["data"] = {}
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "get_driver API Error")
+        frappe.response["status"] = False
+        frappe.response["message"] = f"Server Error: {str(e)}"
+        frappe.response["data"] = {}
