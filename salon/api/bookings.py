@@ -497,3 +497,105 @@ def update_booking():
         frappe.response["status"] = False
         frappe.response["message"] = f"Server Error: {str(e)}"
         frappe.response["data"] = {}
+
+@frappe.whitelist(allow_guest=True)
+def driver_booking_list(id=None, search=None):
+    try:
+        if not id:
+            frappe.response["status"] = False
+            frappe.response["message"] = "Driver ID is required"
+            frappe.response["data"] = []
+            return
+
+        driver_user = frappe.get_value("Drivers", id, "user")
+        if not driver_user:
+            frappe.response["status"] = False
+            frappe.response["message"] = "No user linked to this driver"
+            frappe.response["data"] = []
+            return
+
+        today = frappe.utils.today()
+
+        filters = {
+            "driver": id,
+            "status": ["!=", "Cancel"],
+            "date": [">=", today],
+        }
+
+        if search:
+            filters["name"] = ["like", f"%{search}%"]
+
+        bookings = frappe.get_all(
+            "Booking",
+            filters=filters,
+            fields=[
+                "name as id",
+                "customer",
+                "state",
+                "state_name",
+                "location",
+                "staff_name",
+                "staff",
+                "date",
+                "slot",
+                "status",
+                "driver_note",
+                "payment_status",
+                "payment_reference",
+                "payment_method",
+                "cash_method",
+                "branch",
+                "note",
+                "total",
+                "is_gift",
+                "gift_to",
+                "gift_from",
+                "gift_location",
+                "gift_message",
+                "gift_number",
+            ],
+            order_by="date asc, slot asc",
+        )
+
+        result = []
+        for b in bookings:
+            result.append({
+                "id": b.id or "",
+                "branch": b.branch or "",
+                "branch_name": frappe.get_value("Branches", b.branch, "name1") or "",
+                "staff_name": b.staff_name or "",
+                "staff": b.staff or "",
+                "note": b.note or "",
+                "date": str(b.date) if b.date else "",
+                "slot": b.slot or "",
+                "slot_time": frappe.get_value("Time Slot", b.slot, "service_time") or "",
+                "state": b.state or "",
+                "state_name": b.state_name or "",
+                "location": b.location or "",
+                "status": b.status or "",
+                "driver_note": b.driver_note or "",
+                "customer": b.customer or "",
+                "total": b.total or 0,
+                "payment_status": b.payment_status or "",
+                "payment_reference": b.payment_reference or "",
+                "payment_method": b.payment_method or "",
+                "cash_method": b.cash_method or "",
+                "is_gift": b.is_gift or 0,
+                "gift_to": b.gift_to or "",
+                "gift_from": b.gift_from or "",
+                "gift_location": b.gift_location or "",
+                "gift_message": b.gift_message or "",
+                "gift_number": b.gift_number or "",
+                "table_services": get_booking_services(b.id),
+                "phone": frappe.db.get_value("User", b.customer, "mobile_no") or "",
+            })
+
+        frappe.response["status"] = True
+        frappe.response["message"] = "Driver booking list fetched successfully"
+        frappe.response["data"] = result
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "driver_booking_list API Error")
+        frappe.response["status"] = False
+        frappe.response["message"] = f"Server Error: {str(e)}"
+        frappe.response["data"] = []
