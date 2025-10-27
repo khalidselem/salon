@@ -450,3 +450,50 @@ def cancel_booking(id=None):
         frappe.response["status"] = False
         frappe.response["message"] = f"Server Error: {str(e)}"
         frappe.response["data"] = {}
+
+@frappe.whitelist(allow_guest=True)
+def update_booking():
+    try:
+        data = frappe.local.form_dict
+        if not data:
+            try:
+                data = json.loads(frappe.request.data or '{}')
+            except Exception:
+                data = {}
+
+        if not data:
+            frappe.response["status"] = False
+            frappe.response["message"] = "Empty request body"
+            frappe.response["data"] = {}
+            return
+
+        booking_id = data.get("id")
+        if not booking_id:
+            frappe.response["status"] = False
+            frappe.response["message"] = "Booking ID is required"
+            frappe.response["data"] = {}
+            return
+
+        booking = frappe.get_doc("Booking", booking_id)
+
+        for field, value in data.items():
+            if field != "id" and field in booking.as_dict():
+                booking.set(field, value)
+
+        booking.save(ignore_permissions=True)
+        frappe.db.commit()
+
+        frappe.response["status"] = True
+        frappe.response["message"] = "Booking updated successfully"
+        frappe.response["data"] = booking.as_dict()
+
+    except frappe.DoesNotExistError:
+        frappe.response["status"] = False
+        frappe.response["message"] = "Booking not found"
+        frappe.response["data"] = {}
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "update_booking API Error")
+        frappe.response["status"] = False
+        frappe.response["message"] = f"Server Error: {str(e)}"
+        frappe.response["data"] = {}

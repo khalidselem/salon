@@ -99,7 +99,6 @@ def get_driver(id=None):
 
         user = frappe.get_doc("User", driver.user)
 
-
         data = {
             "id": driver.name,
             "first_name": user.first_name or "",
