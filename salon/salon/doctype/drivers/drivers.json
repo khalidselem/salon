@@ -40,14 +40,14 @@
   },
   {
    "fieldname": "device_token",
-   "fieldtype": "Data",
+   "fieldtype": "Long Text",
    "label": "Device Token",
    "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-10-23 12:19:46.819484",
+ "modified": "2025-10-27 13:24:23.796201",
  "modified_by": "Administrator",
  "module": "Salon",
  "name": "Drivers",
