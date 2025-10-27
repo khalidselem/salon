@@ -575,6 +575,7 @@ def driver_booking_list(id=None, search=None):
                 "status": b.status or "",
                 "driver_note": b.driver_note or "",
                 "customer": b.customer or "",
+                "customer_name": frappe.get_value("User", b.customer, "full_name") or "",
                 "total": b.total or 0,
                 "payment_status": b.payment_status or "",
                 "payment_reference": b.payment_reference or "",
