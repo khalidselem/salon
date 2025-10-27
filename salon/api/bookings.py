@@ -553,6 +553,7 @@ def driver_booking_list(id=None, search=None):
                 "gift_location",
                 "gift_message",
                 "gift_number",
+                "lat_lng",
             ],
             order_by="date asc, slot asc",
         )
@@ -589,6 +590,7 @@ def driver_booking_list(id=None, search=None):
                 "gift_number": b.gift_number or "",
                 "table_services": get_booking_services(b.id),
                 "phone": frappe.db.get_value("User", b.customer, "mobile_no") or "",
+                "lat_lng": b.lat_lng,
             })
 
         frappe.response["status"] = True
