@@ -147,7 +147,7 @@ def service_list(category_id=None, subcategory_id=None, search=None, branch_id=N
                 "default_price": s.get("price"),
                 "duration_min": s.get("duration"),
                 "category_id": s.get("category"),
-                "status": 1,
+                "status": "active",
                 "sub_category_id": s.get("subcategory"),
                 "service_image": f"{site_url}{s['image']}" if s.get("image") else None,
                 "is_gift_category": s.get("gift")
