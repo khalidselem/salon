@@ -19,6 +19,7 @@
    "fieldtype": "Currency",
    "in_list_view": 1,
    "in_preview": 1,
+   "in_standard_filter": 1,
    "label": "Price"
   },
   {
@@ -32,18 +33,30 @@
   {
    "fieldname": "service",
    "fieldtype": "Link",
+   "in_filter": 1,
+   "in_global_search": 1,
+   "in_list_view": 1,
+   "in_preview": 1,
+   "in_standard_filter": 1,
    "label": "Service",
    "options": "Service"
   },
   {
    "fieldname": "total_price",
    "fieldtype": "Currency",
+   "in_list_view": 1,
+   "in_preview": 1,
+   "in_standard_filter": 1,
    "label": "Total Price"
   },
   {
    "fetch_from": "service.english_name",
    "fieldname": "service_name",
    "fieldtype": "Data",
+   "in_filter": 1,
+   "in_list_view": 1,
+   "in_preview": 1,
+   "in_standard_filter": 1,
    "label": "Service Name",
    "read_only": 1
   }
@@ -51,12 +64,13 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-10-22 11:54:40.904757",
+ "modified": "2025-10-28 01:27:09.273572",
  "modified_by": "Administrator",
  "module": "Salon",
  "name": "Booking Items List",
  "owner": "Administrator",
  "permissions": [],
+ "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": []

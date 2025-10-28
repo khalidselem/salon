@@ -6,6 +6,7 @@
  "engine": "InnoDB",
  "field_order": [
   "state_name",
+  "state_name_ar",
   "branch",
   "branch_name"
  ],
@@ -35,12 +36,18 @@
    "fieldtype": "Data",
    "label": "Branch Name",
    "read_only": 1
+  },
+  {
+   "fieldname": "state_name_ar",
+   "fieldtype": "Data",
+   "label": "State Name Ar",
+   "reqd": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-10-08 01:43:49.435125",
+ "modified": "2025-10-28 02:12:05.471815",
  "modified_by": "Administrator",
  "module": "Salon",
  "name": "States",
