@@ -90,7 +90,7 @@ def get_employee_list(branch_id=None, service_ids=None):
             fields=[
                 "name", "first_name", "last_name", "employee_name",
                 "user_id", "cell_number", "date_of_birth",
-                "gender", "date_of_joining", "image"
+                "gender", "date_of_joining", "image", "custom_holidays"
             ],
         )
 
