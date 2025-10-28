@@ -33,7 +33,7 @@ def get_states(id=None):
         states = frappe.get_all(
             "States",
             filters={"branch": id},
-            fields=["name", "state_name", "branch", "branch_name"]
+            fields=["name", "state_name", "state_name_ar", "branch", "branch_name"]
         )
 
         frappe.response["status"] = True
@@ -572,6 +572,7 @@ def driver_booking_list(id=None, search=None):
                 "slot_time": frappe.get_value("Time Slot", b.slot, "service_time") or "",
                 "state": b.state or "",
                 "state_name": b.state_name or "",
+                "state_name_ar": frappe.get_value("States", b.state, "state_name_ar") or "",
                 "location": b.location or "",
                 "status": b.status or "",
                 "driver_note": b.driver_note or "",
@@ -589,7 +590,7 @@ def driver_booking_list(id=None, search=None):
                 "gift_message": b.gift_message or "",
                 "gift_number": b.gift_number or "",
                 "table_services": get_booking_services(b.id),
-                "phone": frappe.db.get_value("User", b.customer, "mobile_no") or "",
+                "phone": b.customer_phone_qb if b.is_quick_booking == 1 else frappe.db.get_value("User", b.customer, "mobile_no") or "",
                 "lat_lng": b.lat_lng,
             })
 

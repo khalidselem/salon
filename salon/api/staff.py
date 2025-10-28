@@ -107,7 +107,7 @@ def get_employee_list(branch_id=None, service_ids=None):
                 "date_of_birth": emp.get("date_of_birth"),
                 "joining_date": emp.get("date_of_joining"),
                 "profile_image": f"{site_url}{emp.get('image')}" if emp.get("image") else "",
-                "holiday": "Friday",
+                "holiday": emp.get("custom_holidays") or "",
                 "status": 1,
                 "rating_star": 5,
             })

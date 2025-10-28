@@ -58,7 +58,7 @@ def driver_login(email=None, password=None, device_token=None):
             "email": user.name or "",
             "device_token": device_token or driver.device_token or "",
             "gender": user.gender or "",
-            "profile_image": f"{site_url}{user.user_image}" or "",
+            "profile_image":  f"{site_url}{user.user_image}" if user.user_image else "",
             "login_type": "driver"
         }
 
@@ -107,7 +107,7 @@ def get_driver(id=None):
             "email": user.name or "",
             "device_token": driver.device_token or "",
             "gender": user.gender or "",
-            "profile_image": f"{site_url}{user.user_image}" or "",
+            "profile_image": f"{site_url}{user.user_image}" if user.user_image else "",
             "login_type": "driver",
         }
 
